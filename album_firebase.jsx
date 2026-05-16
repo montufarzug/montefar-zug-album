@@ -1,0 +1,401 @@
+import React, { useState, useEffect } from 'react';
+import { Search, RotateCcw, Loader, X } from 'lucide-react';
+
+// Firebase imports
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getDatabase, ref, onValue, set } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+
+export default function PaniniTracker() {
+  const GROUPS = {
+    'FWC': { name: '⚽ World Cup History', teams: {} },
+    'A': { name: 'GROUP A', teams: { 'MEX': 'Mexico', 'KOR': 'South Korea', 'RSA': 'South Africa' } },
+    'B': { name: 'GROUP B', teams: { 'CAN': 'Canada', 'SUI': 'Switzerland', 'QAT': 'Qatar' } },
+    'C': { name: 'GROUP C', teams: { 'BRA': 'Brazil', 'MAR': 'Morocco', 'SCO': 'Scotland', 'HAI': 'Haiti' } },
+    'D': { name: 'GROUP D', teams: { 'USA': 'United States', 'AUS': 'Australia', 'PAR': 'Paraguay' } },
+    'E': { name: 'GROUP E', teams: { 'GER': 'Germany', 'ECU': 'Ecuador', 'CIV': 'Ivory Coast', 'CUW': 'Curaçao' } },
+    'F': { name: 'GROUP F', teams: { 'NED': 'Netherlands', 'JPN': 'Japan', 'TUN': 'Tunisia' } },
+    'G': { name: 'GROUP G', teams: { 'BEL': 'Belgium', 'EGY': 'Egypt', 'IRN': 'Iran', 'NZL': 'New Zealand' } },
+    'H': { name: 'GROUP H', teams: { 'ESP': 'Spain', 'URU': 'Uruguay', 'KSA': 'Saudi Arabia', 'CPV': 'Cape Verde' } },
+    'I': { name: 'GROUP I', teams: { 'FRA': 'France', 'SEN': 'Senegal', 'NOR': 'Norway' } },
+    'J': { name: 'GROUP J', teams: { 'ARG': 'Argentina', 'AUT': 'Austria', 'ALG': 'Algeria', 'JOR': 'Jordan' } },
+    'K': { name: 'GROUP K', teams: { 'POR': 'Portugal', 'COL': 'Colombia', 'UZB': 'Uzbekistan' } },
+    'L': { name: 'GROUP L', teams: { 'ENG': 'England', 'CRO': 'Croatia', 'GHA': 'Ghana', 'PAN': 'Panama' } },
+  };
+
+  const [stickers, setStickers] = useState({});
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [tradeMode, setTradeMode] = useState(false);
+  const [tradeSearch, setTradeSearch] = useState('');
+  const [longPressMenu, setLongPressMenu] = useState(null);
+  const [longPressTimer, setLongPressTimer] = useState(null);
+  const [db, setDb] = useState(null);
+  const [synced, setSynced] = useState(false);
+
+  // Initialize Firebase and load data
+  useEffect(() => {
+    const initFirebase = async () => {
+      try {
+        // REPLACE WITH YOUR FIREBASE CONFIG
+        const firebaseConfig = {
+          apiKey: "YOUR_API_KEY",
+          authDomain: "YOUR_AUTH_DOMAIN",
+          databaseURL: "YOUR_DATABASE_URL",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_STORAGE_BUCKET",
+          messagingSenderId: "YOUR_MESSAGING_ID",
+          appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+        setDb(database);
+
+        // Sign in anonymously
+        signInAnonymously(auth).catch(err => {
+          console.log('Using local storage - Firebase not configured yet');
+          loadLocalData();
+        });
+
+        // Listen to database changes
+        const dbRef = ref(database, 'album/stickers');
+        onValue(dbRef, (snapshot) => {
+          if (snapshot.exists()) {
+            setStickers(snapshot.val());
+            setSynced(true);
+          } else {
+            loadLocalData();
+          }
+          setLoading(false);
+        }, (error) => {
+          console.log('Database error - using local data');
+          loadLocalData();
+          setLoading(false);
+        });
+      } catch (err) {
+        console.log('Firebase init failed - using local data');
+        loadLocalData();
+        setLoading(false);
+      }
+    };
+
+    initFirebase();
+  }, []);
+
+  const loadLocalData = () => {
+    const saved = localStorage.getItem('montefar_zug_album');
+    if (saved) {
+      try {
+        setStickers(JSON.parse(saved));
+      } catch {
+        initializeStickers();
+      }
+    } else {
+      initializeStickers();
+    }
+  };
+
+  const initializeStickers = () => {
+    const newStickers = {};
+    for (let i = 1; i <= 19; i++) {
+      newStickers[`FWC-${i}`] = 0;
+    }
+    Object.keys(GROUPS).forEach(groupKey => {
+      if (groupKey !== 'FWC') {
+        Object.keys(GROUPS[groupKey].teams).forEach(countryCode => {
+          for (let i = 1; i <= 20; i++) {
+            newStickers[`${countryCode}-${i}`] = 0;
+          }
+        });
+      }
+    });
+    setStickers(newStickers);
+    saveData(newStickers);
+  };
+
+  const saveData = (data) => {
+    localStorage.setItem('montefar_zug_album', JSON.stringify(data));
+    if (db) {
+      try {
+        set(ref(db, 'album/stickers'), data);
+      } catch (err) {
+        console.log('Firebase save failed');
+      }
+    }
+  };
+
+  const incrementCount = (code) => {
+    const newStickers = { ...stickers, [code]: (stickers[code] || 0) + 1 };
+    setStickers(newStickers);
+    saveData(newStickers);
+  };
+
+  const decrementCount = (code) => {
+    const newStickers = { ...stickers, [code]: Math.max(0, (stickers[code] || 0) - 1) };
+    setStickers(newStickers);
+    saveData(newStickers);
+  };
+
+  const handleLongPressStart = (code) => {
+    const timer = setTimeout(() => {
+      setLongPressMenu(code);
+    }, 500);
+    setLongPressTimer(timer);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  const deleteStickerCount = (code) => {
+    const newStickers = { ...stickers, [code]: 0 };
+    setStickers(newStickers);
+    saveData(newStickers);
+    setLongPressMenu(null);
+  };
+
+  const decreaseByOne = (code) => {
+    decrementCount(code);
+    setLongPressMenu(null);
+  };
+
+  const allStickers = Object.keys(stickers).map(code => ({ code, count: stickers[code] }));
+  
+  const missing = allStickers.filter(s => s.count === 0).length;
+  const have = allStickers.filter(s => s.count === 1).length;
+  const forTrade = allStickers.filter(s => s.count >= 2).length;
+  const total = allStickers.length;
+  const percentage = total > 0 ? Math.round((have / total) * 100) : 0;
+
+  const filtered = allStickers.filter(s => {
+    const matchesSearch = s.code.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterType === 'all' || (filterType === 'have' && s.count === 1) || (filterType === 'trading' && s.count >= 2) || (filterType === 'missing' && s.count === 0);
+    return matchesSearch && matchesFilter;
+  });
+
+  const getCountryName = (code) => {
+    for (const groupKey of ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']) {
+      if (GROUPS[groupKey].teams[code]) return GROUPS[groupKey].teams[code];
+    }
+    return 'World Cup';
+  };
+
+  const getStatusDisplay = (count) => {
+    if (count === 0) return { label: 'Missing', icon: '', color: 'bg-slate-100 border-slate-300' };
+    if (count === 1) return { label: 'Have', icon: '✓', color: 'bg-green-100 border-green-400' };
+    return { label: `Have + Trade (${count - 1})`, icon: '✓↔', color: 'bg-purple-100 border-purple-400' };
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+        <Loader className="w-8 h-8 animate-spin text-purple-600" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pb-20" onClick={() => setLongPressMenu(null)}>
+      {/* Header */}
+      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b-2 border-purple-200 shadow-sm">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-3">
+            <h1 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
+              🌍 Montúfar Zug Super Secret Album del Mundial
+            </h1>
+            {synced && <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold">✓ Synced</div>}
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            <div className="bg-gradient-to-br from-green-400 to-green-500 rounded-lg p-2 text-white text-center shadow-md">
+              <div className="text-lg font-bold">{have}</div>
+              <div className="text-xs font-semibold">Have</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-2 text-white text-center shadow-md">
+              <div className="text-lg font-bold">{forTrade}</div>
+              <div className="text-xs font-semibold">Trading</div>
+            </div>
+            <div className="bg-gradient-to-br from-slate-400 to-slate-500 rounded-lg p-2 text-white text-center shadow-md">
+              <div className="text-lg font-bold">{missing}</div>
+              <div className="text-xs font-semibold">Missing</div>
+            </div>
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-2 text-white text-center shadow-md">
+              <div className="text-lg font-bold">{percentage}%</div>
+              <div className="text-xs font-semibold">Complete</div>
+            </div>
+          </div>
+
+          <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden mb-4">
+            <div className="h-full bg-gradient-to-r from-green-400 via-purple-400 to-orange-400 transition-all" style={{ width: `${percentage}%` }} />
+          </div>
+
+          <div className="space-y-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+              <input type="text" placeholder="Search sticker..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+            </div>
+
+            <div className="flex gap-2 flex-wrap">
+              {[{ key: 'all', label: 'All' }, { key: 'have', label: 'Have' }, { key: 'trading', label: 'Trading' }, { key: 'missing', label: 'Missing' }].map(btn => (
+                <button key={btn.key} onClick={() => setFilterType(btn.key)} className={`px-3 py-1 text-xs font-semibold rounded-full transition-all ${filterType === btn.key ? (btn.key === 'all' ? 'bg-purple-600 text-white' : btn.key === 'have' ? 'bg-green-500 text-white' : btn.key === 'trading' ? 'bg-purple-500 text-white' : 'bg-slate-600 text-white') : 'bg-white border border-slate-300 text-slate-700'}`}>
+                  {btn.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Stickers Grid */}
+      <div className="max-w-3xl mx-auto px-3 py-4">
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-slate-500">No stickers match</div>
+        ) : (
+          <>
+            {filtered.some(s => s.code.startsWith('FWC')) && (
+              <div className="mb-8">
+                <h2 className="text-lg font-bold text-slate-700 uppercase mb-3">⚽ World Cup History</h2>
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                  {filtered.filter(s => s.code.startsWith('FWC')).map(s => {
+                    const st = getStatusDisplay(s.count);
+                    return (
+                      <div key={s.code} 
+                        onMouseDown={(e) => { if (e.button === 2) handleLongPressStart(s.code); }}
+                        onMouseUp={handleLongPressEnd}
+                        onContextMenu={(e) => { e.preventDefault(); setLongPressMenu(s.code); }}
+                        onTouchStart={() => handleLongPressStart(s.code)}
+                        onTouchEnd={handleLongPressEnd}
+                        onClick={() => incrementCount(s.code)} 
+                        className={`aspect-square rounded-lg border-2 cursor-pointer transition-all active:scale-95 flex flex-col items-center justify-center font-bold text-center ${st.color} hover:shadow-md relative`}>
+                        <div className="text-xs">{s.code.split('-')[1]}</div>
+                        {s.count > 0 && <><div className="text-sm">{st.icon}</div>{s.count > 1 && <div className="text-xs bg-white rounded-full w-5 h-5 flex items-center justify-center">{s.count}</div>}</>}
+                        {longPressMenu === s.code && (
+                          <div className="absolute inset-0 bg-black/70 rounded-lg flex flex-col items-center justify-center gap-1 z-50">
+                            <button onClick={(e) => { e.stopPropagation(); decreaseByOne(s.code); }} className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded">-1</button>
+                            <button onClick={(e) => { e.stopPropagation(); deleteStickerCount(s.code); }} className="text-white text-xs font-bold bg-red-600 px-2 py-1 rounded">Clear</button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'].map(groupKey => {
+              const groupStickers = filtered.filter(s => GROUPS[groupKey].teams[s.code.split('-')[0]]);
+              if (groupStickers.length === 0) return null;
+              const countries = [...new Set(groupStickers.map(s => s.code.split('-')[0]))];
+              return (
+                <div key={groupKey} className="mb-8">
+                  <h2 className="text-lg font-bold text-slate-700 uppercase mb-4">{GROUPS[groupKey].name}</h2>
+                  {countries.map(code => (
+                    <div key={code} className="mb-5">
+                      <h3 className="text-sm font-bold text-slate-600 mb-2">🏴 {GROUPS[groupKey].teams[code]}</h3>
+                      <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                        {groupStickers.filter(s => s.code.startsWith(code)).map(s => {
+                          const st = getStatusDisplay(s.count);
+                          return (
+                            <div key={s.code} 
+                              onMouseDown={(e) => { if (e.button === 2) handleLongPressStart(s.code); }}
+                              onMouseUp={handleLongPressEnd}
+                              onContextMenu={(e) => { e.preventDefault(); setLongPressMenu(s.code); }}
+                              onTouchStart={() => handleLongPressStart(s.code)}
+                              onTouchEnd={handleLongPressEnd}
+                              onClick={() => incrementCount(s.code)} 
+                              className={`aspect-square rounded-lg border-2 cursor-pointer transition-all active:scale-95 flex flex-col items-center justify-center font-bold text-center ${st.color} hover:shadow-md relative`}>
+                              <div className="text-xs">{s.code.split('-')[1]}</div>
+                              {s.count > 0 && <><div className="text-sm">{st.icon}</div>{s.count > 1 && <div className="text-xs bg-white rounded-full w-5 h-5 flex items-center justify-center">{s.count}</div>}</>}
+                              {longPressMenu === s.code && (
+                                <div className="absolute inset-0 bg-black/70 rounded-lg flex flex-col items-center justify-center gap-1 z-50">
+                                  <button onClick={(e) => { e.stopPropagation(); decreaseByOne(s.code); }} className="text-white text-xs font-bold bg-red-500 px-2 py-1 rounded">-1</button>
+                                  <button onClick={(e) => { e.stopPropagation(); deleteStickerCount(s.code); }} className="text-white text-xs font-bold bg-red-600 px-2 py-1 rounded">Clear</button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </>
+        )}
+      </div>
+
+      {/* Buttons */}
+      <div className="fixed bottom-6 right-6 flex flex-col gap-3">
+        <button onClick={() => setTradeMode(true)} className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl active:scale-95 font-bold text-2xl transition-all">
+          ↔️
+        </button>
+        <button onClick={() => { if (window.confirm('Reset all stickers?')) initializeStickers(); }} className="bg-white border-2 border-slate-300 rounded-full p-3 shadow-lg hover:shadow-xl active:scale-95 transition-all">
+          <RotateCcw className="w-5 h-5 text-slate-600" />
+        </button>
+      </div>
+
+      {/* Trade Mode Modal */}
+      {tradeMode && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center sm:justify-center">
+          <div className="bg-white w-full sm:max-w-2xl sm:rounded-xl rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="sticky top-0 bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 flex items-center justify-between rounded-t-3xl sm:rounded-t-xl">
+              <h2 className="text-2xl font-bold">↔️ Complete a Trade</h2>
+              <button onClick={() => setTradeMode(false)} className="text-white text-2xl hover:opacity-75">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="px-4 py-3 border-b bg-slate-50">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 w-4 h-4 text-slate-400" />
+                <input type="text" placeholder="Search stickers..." value={tradeSearch} onChange={(e) => setTradeSearch(e.target.value)} className="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {allStickers.filter(s => s.count >= 2 && s.code.toLowerCase().includes(tradeSearch.toLowerCase())).length === 0 ? (
+                <div className="text-center py-12 text-slate-500">
+                  <p>No stickers available for trading</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {allStickers.filter(s => s.count >= 2 && s.code.toLowerCase().includes(tradeSearch.toLowerCase())).sort((a, b) => a.code.localeCompare(b.code)).map(s => (
+                    <div key={s.code} className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-transparent border-2 border-purple-200 rounded-lg p-4">
+                      <div className="flex-1">
+                        <p className="font-bold text-lg">{s.code}</p>
+                        <p className="text-sm text-slate-600">{getCountryName(s.code.split('-')[0])}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="text-center">
+                          <p className="text-sm text-slate-600">Available</p>
+                          <p className="text-2xl font-bold text-purple-600">{s.count - 1}</p>
+                        </div>
+                        <button onClick={() => decrementCount(s.code)} className="bg-red-500 hover:bg-red-600 active:scale-95 text-white rounded-lg px-4 py-3 font-bold transition-all">
+                          Trade ✓
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t p-4 bg-slate-50">
+              <button onClick={() => setTradeMode(false)} className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-all">
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
