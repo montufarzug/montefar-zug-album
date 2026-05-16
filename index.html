@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌍 Montúfar Zug Super Secret Album del Mundial</title>
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='white' stroke='black' stroke-width='2'/><circle cx='50' cy='50' r='48' fill='none' stroke='black' stroke-width='1.5'/><path d='M50 2 L61.8 9.5 L65.5 22.5 L53.6 27 Z' fill='black'/><path d='M50 2 L38.2 9.5 L34.5 22.5 L46.4 27 Z' fill='black'/><path d='M73.2 30 L85.4 34.5 L82 48 L70 43 Z' fill='black'/><path d='M26.8 30 L14.6 34.5 L18 48 L30 43 Z' fill='black'/><path d='M70 57 L82 52 L85.4 65.5 L73.2 70 Z' fill='black'/><path d='M30 57 L18 52 L14.6 65.5 L26.8 70 Z' fill='black'/><path d='M50 98 L61.8 90.5 L65.5 77.5 L53.6 73 Z' fill='black'/><path d='M50 98 L38.2 90.5 L34.5 77.5 L46.4 73 Z' fill='black'/><circle cx='50' cy='50' r='20' fill='none' stroke='black' stroke-width='1'/></svg>">
+
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -193,32 +194,53 @@
             };
 
             const copyMissingToClipboard = () => {
-                const missing = allStickers.filter(s => s.count === 0);
-                const grouped = {};
+    const missing = allStickers.filter(s => s.count === 0);
+    const grouped = {};
 
-                // Group by country/team
-                missing.forEach(sticker => {
-                    const countryCode = sticker.code.split('-')[0];
-                    if (!grouped[countryCode]) {
-                        grouped[countryCode] = [];
-                    }
-                    grouped[countryCode].push(getStickerNumber(sticker.code));
-                });
+    // Group by country/team
+    missing.forEach(sticker => {
+        const countryCode = sticker.code.split('-')[0];
+        if (!grouped[countryCode]) {
+            grouped[countryCode] = [];
+        }
+        grouped[countryCode].push(getStickerNumber(sticker.code));
+    });
 
-                // Sort numbers within each group
-                Object.keys(grouped).forEach(code => {
-                    grouped[code].sort((a, b) => a - b);
-                });
+    // Sort numbers within each group
+    Object.keys(grouped).forEach(code => {
+        grouped[code].sort((a, b) => a - b);
+    });
 
-                // Format as text
-                let text = "Missing Monti\n\n";
-                
-                // FWC first if exists
-                if (grouped['FWC']) {
-                    text += "FWC: " + grouped['FWC'].join(", ") + "\n";
-                }
+    // Format as text with groups
+    let text = "Missing Monti\n\n";
+    
+    // FWC first if exists
+    if (grouped['FWC']) {
+        text += "⚽ WORLD CUP HISTORY\n";
+        text += "FWC: " + grouped['FWC'].join(", ") + "\n\n";
+    }
 
-                // Then groups A-L with their teams
+    // Then groups A-L with their teams
+    const groupOrder = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+    groupOrder.forEach(groupKey => {
+        const groupTeams = Object.keys(GROUPS[groupKey].teams).filter(code => grouped[code]);
+        if (groupTeams.length > 0) {
+            text += "GROUP " + groupKey + "\n";
+            groupTeams.forEach(countryCode => {
+                text += countryCode + ": " + grouped[countryCode].join(", ") + "\n";
+            });
+            text += "\n";
+        }
+    });
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(text).then(() => {
+        setSyncMessage('✅ Copied to clipboard!');
+        setTimeout(() => setSyncMessage(''), 3000);
+    }).catch(() => {
+        setSyncMessage('❌ Copy failed');
+    });
+};
                 const groupOrder = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
                 groupOrder.forEach(groupKey => {
                     Object.keys(GROUPS[groupKey].teams).forEach(countryCode => {
