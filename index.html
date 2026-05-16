@@ -11,34 +11,12 @@
 </head>
 <body>
     <div id="root"></div>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        let database = null;
-        let firebaseReady = false;
-
-        // Initialize Firebase
-        try {
-            const firebaseConfig = {
-                apiKey: "AIzaSyDsSpB-cb8GfWvEJOmzM8XhBf-lblbu_bU",
-                authDomain: "montefar-zug-album.firebaseapp.com",
-                databaseURL: "https://montefar-zug-album-default-rtdb.firebaseio.com",
-                projectId: "montefar-zug-album",
-                storageBucket: "montefar-zug-album.firebasestorage.app",
-                messagingSenderId: "983753418704",
-                appId: "1:983753418704:web:47475627e7b8ff87fb7bd5"
-            };
-
-            if (typeof firebase !== 'undefined') {
-                firebase.initializeApp(firebaseConfig);
-                database = firebase.database();
-                firebaseReady = true;
-            }
-        } catch (error) {
-            console.log('Firebase init error:', error.message);
-        }
+        // Firebase REST API Config
+        const FIREBASE_DB_URL = "https://montefar-zug-album-default-rtdb.firebaseio.com";
+        const FIREBASE_API_KEY = "AIzaSyDsSpB-cb8GfWvEJOmzM8XhBf-lblbu_bU";
 
         const GROUPS = {
             'FWC': { name: '⚽ World Cup History', teams: {} },
@@ -65,62 +43,100 @@
             const [tradeSearch, setTradeSearch] = useState('');
             const [firebaseConnected, setFirebaseConnected] = useState(false);
             const isInitializing = useRef(false);
+            const lastFetchRef = useRef(null);
+            const syncIntervalRef = useRef(null);
+
+            // Firebase REST API calls
+            const pushToFirebase = async (data) => {
+                try {
+                    const response = await fetch(
+                        `${FIREBASE_DB_URL}/album/stickers.json?auth=${FIREBASE_API_KEY}`,
+                        {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        }
+                    );
+                    if (response.ok) {
+                        setFirebaseConnected(true);
+                        return true;
+                    }
+                } catch (error) {
+                    console.log('Firebase push error:', error.message);
+                    setFirebaseConnected(false);
+                }
+                return false;
+            };
+
+            const fetchFromFirebase = async () => {
+                try {
+                    const response = await fetch(
+                        `${FIREBASE_DB_URL}/album/stickers.json?auth=${FIREBASE_API_KEY}`
+                    );
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data) {
+                            lastFetchRef.current = JSON.stringify(data);
+                            setStickers(data);
+                            localStorage.setItem('montefar_zug_album', JSON.stringify(data));
+                            setFirebaseConnected(true);
+                            return true;
+                        }
+                    }
+                } catch (error) {
+                    console.log('Firebase fetch error:', error.message);
+                }
+                setFirebaseConnected(false);
+                return false;
+            };
 
             // Initialize
             useEffect(() => {
                 if (isInitializing.current) return;
                 isInitializing.current = true;
 
-                // Load from localStorage first
-                const saved = localStorage.getItem('montefar_zug_album');
-                if (saved) {
-                    try {
-                        setStickers(JSON.parse(saved));
-                    } catch {
+                const initApp = async () => {
+                    // Load from localStorage first
+                    const saved = localStorage.getItem('montefar_zug_album');
+                    if (saved) {
+                        try {
+                            const parsed = JSON.parse(saved);
+                            setStickers(parsed);
+                            lastFetchRef.current = saved;
+                        } catch {
+                            initializeStickers();
+                        }
+                    } else {
                         initializeStickers();
                     }
-                } else {
-                    initializeStickers();
-                }
 
-                // Try Firebase if available
-                if (firebaseReady && database) {
-                    try {
-                        const dbRef = database.ref('album/stickers');
-                        dbRef.on('value', (snapshot) => {
-                            if (snapshot.exists()) {
-                                const firebaseData = snapshot.val();
-                                setStickers(firebaseData);
-                                localStorage.setItem('montefar_zug_album', JSON.stringify(firebaseData));
-                            }
-                            setFirebaseConnected(true);
-                        }, (error) => {
-                            console.log('Firebase error:', error.message);
-                            setFirebaseConnected(false);
-                        });
-                    } catch (error) {
-                        console.log('Firebase setup error:', error.message);
-                        setFirebaseConnected(false);
-                    }
-                }
+                    // Try to fetch from Firebase
+                    await fetchFromFirebase();
+                    setLoading(false);
 
-                setLoading(false);
+                    // Start polling Firebase every 3 seconds
+                    syncIntervalRef.current = setInterval(async () => {
+                        await fetchFromFirebase();
+                    }, 3000);
+                };
+
+                initApp();
+
+                return () => {
+                    if (syncIntervalRef.current) clearInterval(syncIntervalRef.current);
+                };
             }, []);
 
-            // Save to storage
+            // Save to storage and Firebase
             useEffect(() => {
                 if (Object.keys(stickers).length === 0) return;
 
-                localStorage.setItem('montefar_zug_album', JSON.stringify(stickers));
+                const dataString = JSON.stringify(stickers);
+                localStorage.setItem('montefar_zug_album', dataString);
 
-                if (firebaseReady && database && firebaseConnected) {
-                    try {
-                        database.ref('album/stickers').set(stickers).catch(error => {
-                            console.log('Firebase write error:', error.message);
-                        });
-                    } catch (error) {
-                        console.log('Firebase sync error:', error.message);
-                    }
+                // Only push if data changed
+                if (lastFetchRef.current !== dataString && firebaseConnected) {
+                    pushToFirebase(stickers);
                 }
             }, [stickers, firebaseConnected]);
 
