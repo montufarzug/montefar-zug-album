@@ -160,7 +160,7 @@ onMouseUp={() => handleTouchEnd(sticker.code)}
 onContextMenu={(e) => { e.preventDefault(); setLongPressMenu(sticker.code); }}
                         onTouchStart={() => handleTouchStart(sticker.code)}
 onTouchEnd={() => handleTouchEnd(sticker.code)}
-                        onClick={() => incrementCount(sticker.code)}
+                        onClick={(e) => { if (e.detail === 0) return; incrementCount(sticker.code); }}
                         className={`aspect-square rounded-lg border-2 cursor-pointer transition-all active:scale-95 flex flex-col items-center justify-center font-bold text-center ${st.color} hover:shadow-md relative`}
                     >
                         <div className="text-xs">{sticker.code.split('-')[1]}</div>
