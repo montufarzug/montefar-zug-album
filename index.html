@@ -8,28 +8,37 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
 </head>
 <body>
     <div id="root"></div>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyDsSpB-cb8GfWvEJOmzM8XhBf-lblbu_bU",
-            authDomain: "montefar-zug-album.firebaseapp.com",
-            databaseURL: "https://montefar-zug-album-default-rtdb.firebaseio.com",
-            projectId: "montefar-zug-album",
-            storageBucket: "montefar-zug-album.firebasestorage.app",
-            messagingSenderId: "983753418704",
-            appId: "1:983753418704:web:47475627e7b8ff87fb7bd5"
-        };
+        let database = null;
+        let firebaseReady = false;
 
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyDsSpB-cb8GfWvEJOmzM8XhBf-lblbu_bU",
+                authDomain: "montefar-zug-album.firebaseapp.com",
+                databaseURL: "https://montefar-zug-album-default-rtdb.firebaseio.com",
+                projectId: "montefar-zug-album",
+                storageBucket: "montefar-zug-album.firebasestorage.app",
+                messagingSenderId: "983753418704",
+                appId: "1:983753418704:web:47475627e7b8ff87fb7bd5"
+            };
+
+            if (window.firebase) {
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                firebaseReady = true;
+            }
+        } catch (error) {
+            console.log('Firebase init error:', error.message);
+        }
 
         const GROUPS = {
             'FWC': { name: '⚽ World Cup History', teams: {} },
@@ -56,16 +65,13 @@
             const [tradeSearch, setTradeSearch] = useState('');
             const [firebaseConnected, setFirebaseConnected] = useState(false);
             const isInitializing = useRef(false);
-            const lastLocalUpdateRef = useRef(null);
 
-            // Initialize and sync with Firebase
+            // Initialize
             useEffect(() => {
                 if (isInitializing.current) return;
                 isInitializing.current = true;
 
-                const dbRef = database.ref('album/stickers');
-
-                // Load initial data from localStorage
+                // Load from localStorage first
                 const saved = localStorage.getItem('montefar_zug_album');
                 if (saved) {
                     try {
@@ -77,36 +83,44 @@
                     initializeStickers();
                 }
 
-                // Listen for Firebase changes
-                dbRef.on('value', (snapshot) => {
-                    if (snapshot.exists()) {
-                        const firebaseData = snapshot.val();
-                        setStickers(firebaseData);
-                        localStorage.setItem('montefar_zug_album', JSON.stringify(firebaseData));
+                // Try Firebase if available
+                if (firebaseReady && database) {
+                    try {
+                        const dbRef = database.ref('album/stickers');
+                        dbRef.on('value', (snapshot) => {
+                            if (snapshot.exists()) {
+                                const firebaseData = snapshot.val();
+                                setStickers(firebaseData);
+                                localStorage.setItem('montefar_zug_album', JSON.stringify(firebaseData));
+                            }
+                            setFirebaseConnected(true);
+                        }, (error) => {
+                            console.log('Firebase error:', error.message);
+                            setFirebaseConnected(false);
+                        });
+                    } catch (error) {
+                        console.log('Firebase setup error:', error.message);
+                        setFirebaseConnected(false);
                     }
-                    setFirebaseConnected(true);
-                    setLoading(false);
-                }, (error) => {
-                    console.log('Firebase error (offline?):', error.message);
-                    setFirebaseConnected(false);
-                    setLoading(false);
-                });
+                }
 
-                return () => dbRef.off('value');
+                setLoading(false);
             }, []);
 
-            // Save to Firebase and localStorage
+            // Save to storage
             useEffect(() => {
                 if (Object.keys(stickers).length === 0) return;
 
-                lastLocalUpdateRef.current = Date.now();
                 localStorage.setItem('montefar_zug_album', JSON.stringify(stickers));
 
-                // Try to sync to Firebase
-                if (firebaseConnected) {
-                    database.ref('album/stickers').set(stickers).catch(error => {
-                        console.log('Firebase write error:', error.message);
-                    });
+                if (firebaseReady && database && firebaseConnected) {
+                    try {
+                        database.ref('album/stickers').set(stickers).catch(error => {
+                            console.log('Firebase write error:', error.message);
+                        });
+                    } catch (error) {
+                        console.log('Firebase sync error:', error.message);
+                    }
                 }
             }, [stickers, firebaseConnected]);
 
@@ -128,18 +142,15 @@
             };
 
             const incrementCount = (code) => {
-                const newStickers = { ...stickers, [code]: (stickers[code] || 0) + 1 };
-                setStickers(newStickers);
+                setStickers(prev => ({ ...prev, [code]: (prev[code] || 0) + 1 }));
             };
 
             const decrementCount = (code) => {
-                const newStickers = { ...stickers, [code]: Math.max(0, (stickers[code] || 0) - 1) };
-                setStickers(newStickers);
+                setStickers(prev => ({ ...prev, [code]: Math.max(0, (prev[code] || 0) - 1) }));
             };
 
             const deleteStickerCount = (code) => {
-                const newStickers = { ...stickers, [code]: 0 };
-                setStickers(newStickers);
+                setStickers(prev => ({ ...prev, [code]: 0 }));
             };
 
             const allStickers = Object.keys(stickers).map(code => ({ code, count: stickers[code] }));
