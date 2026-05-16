@@ -87,19 +87,26 @@
                 setStickers(newStickers);
             };
 
-            const handleLongPressStart = (code) => {
-                const timer = setTimeout(() => {
-                    setLongPressMenu(code);
-                }, 500);
-                setLongPressTimer(timer);
-            };
+           const [touchStart, setTouchStart] = useState(null);
 
-            const handleLongPressEnd = () => {
-                if (longPressTimer) {
-                    clearTimeout(longPressTimer);
-                    setLongPressTimer(null);
-                }
-            };
+const handleTouchStart = (code) => {
+    setTouchStart({ code, time: Date.now() });
+    const timer = setTimeout(() => {
+        setLongPressMenu(code);
+    }, 600);
+    setLongPressTimer(timer);
+};
+
+const handleTouchEnd = (code) => {
+    if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        setLongPressTimer(null);
+    }
+    if (touchStart && Date.now() - touchStart.time < 300) {
+        incrementCount(code);
+    }
+    setTouchStart(null);
+};
 
             const deleteStickerCount = (code) => {
                 const newStickers = { ...stickers, [code]: 0 };
@@ -151,8 +158,8 @@
                         onMouseDown={(e) => { if (e.button === 2) handleLongPressStart(sticker.code); }}
                         onMouseUp={handleLongPressEnd}
                         onContextMenu={(e) => { e.preventDefault(); setLongPressMenu(sticker.code); }}
-                        onTouchStart={() => handleLongPressStart(sticker.code)}
-                        onTouchEnd={handleLongPressEnd}
+                        onTouchStart={() => handleTouchStart(sticker.code)}
+onTouchEnd={() => handleTouchEnd(sticker.code)}
                         onClick={() => incrementCount(sticker.code)}
                         className={`aspect-square rounded-lg border-2 cursor-pointer transition-all active:scale-95 flex flex-col items-center justify-center font-bold text-center ${st.color} hover:shadow-md relative`}
                     >
