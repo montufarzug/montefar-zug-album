@@ -8,11 +8,28 @@
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js"></script>
 </head>
 <body>
     <div id="root"></div>
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
+
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDsSpB-cb8GfWvEJOmzM8XhBf-lblbu_bU",
+            authDomain: "montefar-zug-album.firebaseapp.com",
+            databaseURL: "https://montefar-zug-album-default-rtdb.firebaseio.com",
+            projectId: "montefar-zug-album",
+            storageBucket: "montefar-zug-album.firebasestorage.app",
+            messagingSenderId: "983753418704",
+            appId: "1:983753418704:web:47475627e7b8ff87fb7bd5"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
         const GROUPS = {
             'FWC': { name: '⚽ World Cup History', teams: {} },
@@ -37,8 +54,18 @@
             const [loading, setLoading] = useState(true);
             const [tradeMode, setTradeMode] = useState(false);
             const [tradeSearch, setTradeSearch] = useState('');
+            const [firebaseConnected, setFirebaseConnected] = useState(false);
+            const isInitializing = useRef(false);
+            const lastLocalUpdateRef = useRef(null);
 
+            // Initialize and sync with Firebase
             useEffect(() => {
+                if (isInitializing.current) return;
+                isInitializing.current = true;
+
+                const dbRef = database.ref('album/stickers');
+
+                // Load initial data from localStorage
                 const saved = localStorage.getItem('montefar_zug_album');
                 if (saved) {
                     try {
@@ -49,14 +76,39 @@
                 } else {
                     initializeStickers();
                 }
-                setLoading(false);
+
+                // Listen for Firebase changes
+                dbRef.on('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        const firebaseData = snapshot.val();
+                        setStickers(firebaseData);
+                        localStorage.setItem('montefar_zug_album', JSON.stringify(firebaseData));
+                    }
+                    setFirebaseConnected(true);
+                    setLoading(false);
+                }, (error) => {
+                    console.log('Firebase error (offline?):', error.message);
+                    setFirebaseConnected(false);
+                    setLoading(false);
+                });
+
+                return () => dbRef.off('value');
             }, []);
 
+            // Save to Firebase and localStorage
             useEffect(() => {
-                if (Object.keys(stickers).length > 0) {
-                    localStorage.setItem('montefar_zug_album', JSON.stringify(stickers));
+                if (Object.keys(stickers).length === 0) return;
+
+                lastLocalUpdateRef.current = Date.now();
+                localStorage.setItem('montefar_zug_album', JSON.stringify(stickers));
+
+                // Try to sync to Firebase
+                if (firebaseConnected) {
+                    database.ref('album/stickers').set(stickers).catch(error => {
+                        console.log('Firebase write error:', error.message);
+                    });
                 }
-            }, [stickers]);
+            }, [stickers, firebaseConnected]);
 
             const initializeStickers = () => {
                 const newStickers = {};
@@ -155,9 +207,14 @@
                 <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pb-20">
                     <div className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b-2 border-purple-200 shadow-sm">
                         <div className="max-w-3xl mx-auto px-4 py-4">
-                            <h1 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 mb-3">
-                                🌍 Montúfar Zug Super Secret Album del Mundial
-                            </h1>
+                            <div className="flex items-center justify-between mb-3">
+                                <h1 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
+                                    🌍 Montúfar Zug Super Secret Album del Mundial
+                                </h1>
+                                <div className={`text-xs font-bold px-2 py-1 rounded ${firebaseConnected ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                                    {firebaseConnected ? '🔄 Synced' : '📱 Offline'}
+                                </div>
+                            </div>
 
                             <div className="grid grid-cols-4 gap-2 mb-4">
                                 <div className="bg-gradient-to-br from-green-400 to-green-500 rounded-lg p-2 text-white text-center shadow-md">
