@@ -31,7 +31,7 @@
                 appId: "1:983753418704:web:47475627e7b8ff87fb7bd5"
             };
 
-            if (window.firebase) {
+            if (typeof firebase !== 'undefined') {
                 firebase.initializeApp(firebaseConfig);
                 database = firebase.database();
                 firebaseReady = true;
