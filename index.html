@@ -87,26 +87,8 @@
                 setStickers(newStickers);
             };
 
-           const [touchStart, setTouchStart] = useState(null);
+          
 
-const handleTouchStart = (code) => {
-    setTouchStart({ code, time: Date.now() });
-    const timer = setTimeout(() => {
-        setLongPressMenu(code);
-    }, 800);
-    setLongPressTimer(timer);
-};
-
-const handleTouchEnd = (code) => {
-    if (longPressTimer) {
-        clearTimeout(longPressTimer);
-        setLongPressTimer(null);
-    }
-    if (touchStart && Date.now() - touchStart.time < 400) {
-        incrementCount(code);
-    }
-    setTouchStart(null);
-};
 
             const deleteStickerCount = (code) => {
                 const newStickers = { ...stickers, [code]: 0 };
