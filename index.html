@@ -155,9 +155,9 @@ const handleTouchEnd = (code) => {
                 return (
                     <div
                         key={sticker.code}
-                        onMouseDown={(e) => { if (e.button === 2) handleLongPressStart(sticker.code); }}
-                        onMouseUp={handleLongPressEnd}
-                        onContextMenu={(e) => { e.preventDefault(); setLongPressMenu(sticker.code); }}
+                        onMouseDown={(e) => { if (e.button === 2) handleTouchStart(sticker.code); }}
+onMouseUp={() => handleTouchEnd(sticker.code)}
+onContextMenu={(e) => { e.preventDefault(); setLongPressMenu(sticker.code); }}
                         onTouchStart={() => handleTouchStart(sticker.code)}
 onTouchEnd={() => handleTouchEnd(sticker.code)}
                         onClick={() => incrementCount(sticker.code)}
