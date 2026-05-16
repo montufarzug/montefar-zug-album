@@ -188,6 +188,62 @@
                 return Math.floor(diff / 3600) + 'h ago';
             };
 
+            const getStickerNumber = (code) => {
+                return parseInt(code.split('-')[1]);
+            };
+
+            const copyMissingToClipboard = () => {
+                const missing = allStickers.filter(s => s.count === 0);
+                const grouped = {};
+
+                // Group by country/team
+                missing.forEach(sticker => {
+                    const countryCode = sticker.code.split('-')[0];
+                    if (!grouped[countryCode]) {
+                        grouped[countryCode] = [];
+                    }
+                    grouped[countryCode].push(getStickerNumber(sticker.code));
+                });
+
+                // Sort numbers within each group
+                Object.keys(grouped).forEach(code => {
+                    grouped[code].sort((a, b) => a - b);
+                });
+
+                // Format as text
+                let text = "Missing Monti\n\n";
+                
+                // FWC first if exists
+                if (grouped['FWC']) {
+                    text += "FWC: " + grouped['FWC'].join(", ") + "\n";
+                }
+
+                // Then groups A-L with their teams
+                const groupOrder = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+                groupOrder.forEach(groupKey => {
+                    Object.keys(GROUPS[groupKey].teams).forEach(countryCode => {
+                        if (grouped[countryCode]) {
+                            text += countryCode + ": " + grouped[countryCode].join(", ") + "\n";
+                        }
+                    });
+                });
+
+                // Copy to clipboard
+                navigator.clipboard.writeText(text).then(() => {
+                    setSyncMessage('✅ Copied to clipboard!');
+                    setTimeout(() => setSyncMessage(''), 3000);
+                }).catch(() => {
+                    setSyncMessage('❌ Copy failed');
+                });
+            };
+
+            const syncToCloudWithWarning = async () => {
+                const confirmed = window.confirm('🚨 JUST CHECKING: ARE YOU BEING STUPID? 🚨\n\nThis will ERASE everything on the cloud and replace it with YOUR data.\n\nIf your account is empty, everyone\'s stickers will be GONE!\n\nReally sync?');
+                if (confirmed) {
+                    await syncToCloud();
+                }
+            };
+
             const StickerCard = ({ sticker }) => {
                 const st = getStatusDisplay(sticker.count);
                 return (
@@ -240,7 +296,7 @@
                             {/* Sync Buttons */}
                             <div className="flex gap-2 mb-3">
                                 <button 
-                                    onClick={syncToCloud}
+                                    onClick={syncToCloudWithWarning}
                                     disabled={syncing}
                                     className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 text-white font-bold py-2 rounded-lg transition-all active:scale-95"
                                 >
@@ -252,6 +308,12 @@
                                     className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:opacity-50 text-white font-bold py-2 rounded-lg transition-all active:scale-95"
                                 >
                                     {syncing ? '⏳ Loading...' : '📥 Load from Cloud'}
+                                </button>
+                                <button 
+                                    onClick={copyMissingToClipboard}
+                                    className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-2 px-3 rounded-lg transition-all active:scale-95 text-sm"
+                                >
+                                    📋 Copy Missing
                                 </button>
                             </div>
 
@@ -308,7 +370,7 @@
                                     <div className="mb-8">
                                         <h2 className="text-lg font-bold text-slate-700 uppercase mb-3">⚽ World Cup History</h2>
                                         <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                                            {filtered.filter(s => s.code.startsWith('FWC')).sort((a, b) => parseInt(a.code.split('-')[1]) - parseInt(b.code.split('-')[1])).map(s => <StickerCard key={s.code} sticker={s} />)}
+                                            {filtered.filter(s => s.code.startsWith('FWC')).sort((a, b) => getStickerNumber(a.code) - getStickerNumber(b.code)).map(s => <StickerCard key={s.code} sticker={s} />)}
                                         </div>
                                     </div>
                                 )}
@@ -324,7 +386,7 @@
                                                 <div key={code} className="mb-5">
                                                     <h3 className="text-sm font-bold text-slate-600 mb-2">🏴 {GROUPS[groupKey].teams[code]}</h3>
                                                     <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                                                        {groupStickers.filter(s => s.code.startsWith(code)).map(s => <StickerCard key={s.code} sticker={s} />)}
+                                                        {groupStickers.filter(s => s.code.startsWith(code)).sort((a, b) => getStickerNumber(a.code) - getStickerNumber(b.code)).map(s => <StickerCard key={s.code} sticker={s} />)}
                                                     </div>
                                                 </div>
                                             ))}
