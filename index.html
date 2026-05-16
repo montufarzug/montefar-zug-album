@@ -241,24 +241,6 @@
         setSyncMessage('❌ Copy failed');
     });
 };
-                const groupOrder = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-                groupOrder.forEach(groupKey => {
-                    Object.keys(GROUPS[groupKey].teams).forEach(countryCode => {
-                        if (grouped[countryCode]) {
-                            text += countryCode + ": " + grouped[countryCode].join(", ") + "\n";
-                        }
-                    });
-                });
-
-                // Copy to clipboard
-                navigator.clipboard.writeText(text).then(() => {
-                    setSyncMessage('✅ Copied to clipboard!');
-                    setTimeout(() => setSyncMessage(''), 3000);
-                }).catch(() => {
-                    setSyncMessage('❌ Copy failed');
-                });
-            };
-
             const syncToCloudWithWarning = async () => {
                 const confirmed = window.confirm('🚨 JUST CHECKING: ARE YOU BEING STUPID? 🚨\n\nThis will ERASE everything on the cloud and replace it with YOUR data.\n\nIf your account is empty, everyone\'s stickers will be GONE!\n\nReally sync?');
                 if (confirmed) {
