@@ -40,14 +40,14 @@ export default function PaniniTracker() {
       try {
         // REPLACE WITH YOUR FIREBASE CONFIG
         const firebaseConfig = {
-          apiKey: "YOUR_API_KEY",
-          authDomain: "YOUR_AUTH_DOMAIN",
-          databaseURL: "YOUR_DATABASE_URL",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_STORAGE_BUCKET",
-          messagingSenderId: "YOUR_MESSAGING_ID",
-          appId: "YOUR_APP_ID"
-        };
+  apiKey: "AIzaSyDsSpB-cb8GfWvEJOmzM8XhBf-lblbu_bU",
+  authDomain: "montefar-zug-album.firebaseapp.com",
+  databaseURL: "https://montefar-zug-album-default-rtdb.firebaseio.com",
+  projectId: "montefar-zug-album",
+  storageBucket: "montefar-zug-album.firebasestorage.app",
+  messagingSenderId: "983753418704",
+  appId: "1:983753418704:web:47475627e7b8ff87fb7bd5"
+};
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
