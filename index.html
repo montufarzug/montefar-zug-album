@@ -308,7 +308,7 @@
                                     <div className="mb-8">
                                         <h2 className="text-lg font-bold text-slate-700 uppercase mb-3">⚽ World Cup History</h2>
                                         <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                                            {filtered.filter(s => s.code.startsWith('FWC')).map(s => <StickerCard key={s.code} sticker={s} />)}
+                                            {filtered.filter(s => s.code.startsWith('FWC')).sort((a, b) => parseInt(a.code.split('-')[1]) - parseInt(b.code.split('-')[1])).map(s => <StickerCard key={s.code} sticker={s} />)}
                                         </div>
                                     </div>
                                 )}
