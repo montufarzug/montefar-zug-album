@@ -16,17 +16,17 @@
 
         const GROUPS = {
             'FWC': { name: '⚽ World Cup History', teams: {} },
-            'A': { name: 'GROUP A', teams: { 'MEX': 'Mexico', 'KOR': 'South Korea', 'RSA': 'South Africa', 'CZE': 'Chzechia' } },
+            'A': { name: 'GROUP A', teams: { 'MEX': 'Mexico', 'KOR': 'South Korea', 'RSA': 'South Africa', 'CZE': 'Czechia' } },
             'B': { name: 'GROUP B', teams: { 'CAN': 'Canada', 'SUI': 'Switzerland', 'QAT': 'Qatar','BIH': 'Bosnia and Herzegovina' } },
             'C': { name: 'GROUP C', teams: { 'BRA': 'Brazil', 'MAR': 'Morocco', 'SCO': 'Scotland', 'HAI': 'Haiti' } },
-            'D': { name: 'GROUP D', teams: { 'USA': 'United States', 'AUS': 'Australia', 'PAR': 'Paraguay', 'TUR':'Turkiye' } },
+            'D': { name: 'GROUP D', teams: { 'USA': 'United States', 'AUS': 'Australia', 'PAR': 'Paraguay', 'TUR':'Turkey' } },
             'E': { name: 'GROUP E', teams: { 'GER': 'Germany', 'ECU': 'Ecuador', 'CIV': 'Ivory Coast', 'CUW': 'Curaçao' } },
             'F': { name: 'GROUP F', teams: { 'NED': 'Netherlands', 'JPN': 'Japan', 'TUN': 'Tunisia', 'SWE' : 'Sweden' } },
             'G': { name: 'GROUP G', teams: { 'BEL': 'Belgium', 'EGY': 'Egypt', 'IRN': 'Iran', 'NZL': 'New Zealand' } },
             'H': { name: 'GROUP H', teams: { 'ESP': 'Spain', 'URU': 'Uruguay', 'KSA': 'Saudi Arabia', 'CPV': 'Cape Verde' } },
             'I': { name: 'GROUP I', teams: { 'FRA': 'France', 'SEN': 'Senegal', 'NOR': 'Norway', 'IRQ': 'Iraq' } },
             'J': { name: 'GROUP J', teams: { 'ARG': 'Argentina', 'AUT': 'Austria', 'ALG': 'Algeria', 'JOR': 'Jordan' } },
-            'K': { name: 'GROUP K', teams: { 'POR': 'Portugal', 'COL': 'Colombia', 'UZB': 'Uzbekistan', 'COD' : 'Congo DR' } },
+            'K': { name: 'GROUP K', teams: { 'POR': 'Portugal', 'COL': 'Colombia', 'UZB': 'Uzbekistan', 'COD' : 'DR Congo' } },
             'L': { name: 'GROUP L', teams: { 'ENG': 'England', 'CRO': 'Croatia', 'GHA': 'Ghana', 'PAN': 'Panama' } },
         };
 
@@ -37,8 +37,6 @@
             const [loading, setLoading] = useState(true);
             const [tradeMode, setTradeMode] = useState(false);
             const [tradeSearch, setTradeSearch] = useState('');
-            const [longPressMenu, setLongPressMenu] = useState(null);
-            const [longPressTimer, setLongPressTimer] = useState(null);
 
             useEffect(() => {
                 const saved = localStorage.getItem('montefar_zug_album');
@@ -87,18 +85,9 @@
                 setStickers(newStickers);
             };
 
-          
-
-
             const deleteStickerCount = (code) => {
                 const newStickers = { ...stickers, [code]: 0 };
                 setStickers(newStickers);
-                setLongPressMenu(null);
-            };
-
-            const decreaseByOne = (code) => {
-                decrementCount(code);
-                setLongPressMenu(null);
             };
 
             const allStickers = Object.keys(stickers).map(code => ({ code, count: stickers[code] }));
@@ -128,43 +117,102 @@
                 return { label: `Have + Trade (${count - 1})`, icon: '✓↔', color: 'bg-purple-100 border-purple-400' };
             };
 
+            const StickerCard = ({ sticker }) => {
+                const st = getStatusDisplay(sticker.count);
+                return (
+                    <div
+                        key={sticker.code}
+                        className={`aspect-square rounded-lg border-2 cursor-pointer transition-all active:scale-95 flex flex-col items-center justify-center font-bold text-center ${st.color} hover:shadow-md relative`}
+                    >
+                        <div 
+                            onClick={() => incrementCount(sticker.code)}
+                            className="w-full h-full flex flex-col items-center justify-center"
+                        >
+                            <div className="text-xs">{sticker.code.split('-')[1]}</div>
+                            {sticker.count > 0 && <>
+                                <div className="text-sm">{st.icon}</div>
+                                {sticker.count > 1 && <div className="text-xs bg-white rounded-full w-5 h-5 flex items-center justify-center">{sticker.count}</div>}
+                            </>}
+                        </div>
+                        
+                        {sticker.count > 0 && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); deleteStickerCount(sticker.code); }}
+                                className="absolute top-0 right-0 text-xs bg-red-600 text-white rounded-bl px-1 py-0.5 hover:bg-red-700"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
+                );
+            };
+
             if (loading) {
                 return <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center"><div className="animate-spin text-purple-600 text-4xl">⏳</div></div>;
             }
 
-            const StickerCard = ({ sticker }) => {
-    const st = getStatusDisplay(sticker.count);
-    const [showDelete, setShowDelete] = useState(false);
-    
-    return (
-        <div
-            key={sticker.code}
-            className={`aspect-square rounded-lg border-2 cursor-pointer transition-all active:scale-95 flex flex-col items-center justify-center font-bold text-center ${st.color} hover:shadow-md relative`}
-        >
-            <div 
-                onClick={() => incrementCount(sticker.code)}
-                className="w-full h-full flex flex-col items-center justify-center"
-            >
-                <div className="text-xs">{sticker.code.split('-')[1]}</div>
-                {sticker.count > 0 && <>
-                    <div className="text-sm">{st.icon}</div>
-                    {sticker.count > 1 && <div className="text-xs bg-white rounded-full w-5 h-5 flex items-center justify-center">{sticker.count}</div>}
-                </>}
-            </div>
-            
-            {sticker.count > 0 && (
-                <button
-                    onClick={(e) => { e.stopPropagation(); deleteStickerCount(sticker.code); }}
-                    className="absolute top-0 right-0 text-xs bg-red-600 text-white rounded-bl px-1 py-0.5 hover:bg-red-700"
-                >
-                    ✕
-                </button>
-            )}
-        </div>
-    );
-};
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pb-20">
+                    <div className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b-2 border-purple-200 shadow-sm">
+                        <div className="max-w-3xl mx-auto px-4 py-4">
+                            <h1 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 mb-3">
+                                🌍 Montúfar Zug Super Secret Album del Mundial
+                            </h1>
 
-            
+                            <div className="grid grid-cols-4 gap-2 mb-4">
+                                <div className="bg-gradient-to-br from-green-400 to-green-500 rounded-lg p-2 text-white text-center shadow-md">
+                                    <div className="text-lg font-bold">{have}</div>
+                                    <div className="text-xs font-semibold">Have</div>
+                                </div>
+                                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-2 text-white text-center shadow-md">
+                                    <div className="text-lg font-bold">{forTrade}</div>
+                                    <div className="text-xs font-semibold">Trading</div>
+                                </div>
+                                <div className="bg-gradient-to-br from-slate-400 to-slate-500 rounded-lg p-2 text-white text-center shadow-md">
+                                    <div className="text-lg font-bold">{missing}</div>
+                                    <div className="text-xs font-semibold">Missing</div>
+                                </div>
+                                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-2 text-white text-center shadow-md">
+                                    <div className="text-lg font-bold">{percentage}%</div>
+                                    <div className="text-xs font-semibold">Complete</div>
+                                </div>
+                            </div>
+
+                            <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden mb-4">
+                                <div className="h-full bg-gradient-to-r from-green-400 via-purple-400 to-orange-400 transition-all" style={{ width: `${percentage}%` }} />
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="relative">
+                                    <input type="text" placeholder="Search sticker..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-3 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                                </div>
+
+                                <div className="flex gap-2 flex-wrap">
+                                    {[{ key: 'all', label: 'All' }, { key: 'have', label: 'Have' }, { key: 'trading', label: 'Trading' }, { key: 'missing', label: 'Missing' }].map(btn => (
+                                        <button key={btn.key} onClick={() => setFilterType(btn.key)} className={`px-3 py-1 text-xs font-semibold rounded-full transition-all ${filterType === btn.key ? (btn.key === 'all' ? 'bg-purple-600 text-white' : btn.key === 'have' ? 'bg-green-500 text-white' : btn.key === 'trading' ? 'bg-purple-500 text-white' : 'bg-slate-600 text-white') : 'bg-white border border-slate-300 text-slate-700'}`}>
+                                            {btn.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="max-w-3xl mx-auto px-3 py-4">
+                        {filtered.length === 0 ? (
+                            <div className="text-center py-12 text-slate-500">No stickers match</div>
+                        ) : (
+                            <>
+                                {filtered.some(s => s.code.startsWith('FWC')) && (
+                                    <div className="mb-8">
+                                        <h2 className="text-lg font-bold text-slate-700 uppercase mb-3">⚽ World Cup History</h2>
+                                        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                                            {filtered.filter(s => s.code.startsWith('FWC')).map(s => <StickerCard key={s.code} sticker={s} />)}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'].map(groupKey => {
                                     const groupStickers = filtered.filter(s => GROUPS[groupKey].teams[s.code.split('-')[0]]);
                                     if (groupStickers.length === 0) return null;
                                     const countries = [...new Set(groupStickers.map(s => s.code.split('-')[0]))];
