@@ -381,7 +381,9 @@
                                 {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'].map(groupKey => {
                                     const groupStickers = filtered.filter(s => GROUPS[groupKey].teams[s.code.split('-')[0]]);
                                     if (groupStickers.length === 0) return null;
-                                    const countries = [...new Set(groupStickers.map(s => s.code.split('-')[0]))];
+                                  const countries = Object.keys(GROUPS[groupKey].teams).filter(code =>
+    groupStickers.some(s => s.code.startsWith(code + '-'))
+);
                                     return (
                                         <div key={groupKey} className="mb-8">
                                             <h2 className="text-lg font-bold text-slate-700 uppercase mb-4">{GROUPS[groupKey].name}</h2>
