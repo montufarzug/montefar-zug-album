@@ -3,533 +3,716 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>⚽ Montúfar Zug Super Secret Album del Mundial</title>
+    <title>⚽ Album del Mundial 2026</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-    <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+<div id="root"></div>
+<script type="text/babel">
+    const { useState, useEffect, useRef } = React;
 
-        // Firebase REST API Config
-        const FIREBASE_DB_URL = "https://montefar-zug-album-default-rtdb.firebaseio.com";
-        const FIREBASE_API_KEY = "AIzaSyDsSpB-cb8GfWvEJOmzM8XhBf-lblbu_bU";
+    const FIREBASE_DB_URL = "https://montefar-zug-album-default-rtdb.firebaseio.com";
+    const FIREBASE_API_KEY = "AIzaSyDsSpB-cb8GfWvEJOmzM8XhBf-lblbu_bU";
 
-        const GROUPS = {
-    'FWC': { name: '⚽ World Cup History', teams: {} },
-    'A': { name: 'GROUP A', teams: { 'MEX': 'Mexico', 'RSA': 'South Africa', 'KOR': 'South Korea', 'CZE': 'Czechia' } },
-    'B': { name: 'GROUP B', teams: { 'CAN': 'Canada', 'BIH': 'Bosnia and Herzegovina', 'QAT': 'Qatar', 'SUI': 'Switzerland' } },
-    'C': { name: 'GROUP C', teams: { 'BRA': 'Brazil', 'MAR': 'Morocco', 'HAI': 'Haiti', 'SCO': 'Scotland' } },
-    'D': { name: 'GROUP D', teams: { 'USA': 'United States', 'PAR': 'Paraguay', 'AUS': 'Australia', 'TUR': 'Turkey' } },
-    'E': { name: 'GROUP E', teams: { 'GER': 'Germany', 'CUW': 'Curaçao', 'CIV': 'Ivory Coast', 'ECU': 'Ecuador' } },
-    'F': { name: 'GROUP F', teams: { 'NED': 'Netherlands', 'JPN': 'Japan', 'SWE': 'Sweden', 'TUN': 'Tunisia' } },
-    'G': { name: 'GROUP G', teams: { 'BEL': 'Belgium', 'EGY': 'Egypt', 'IRN': 'Iran', 'NZL': 'New Zealand' } },
-    'H': { name: 'GROUP H', teams: { 'ESP': 'Spain', 'CPV': 'Cape Verde', 'KSA': 'Saudi Arabia', 'URU': 'Uruguay' } },
-    'I': { name: 'GROUP I', teams: { 'FRA': 'France', 'SEN': 'Senegal', 'IRQ': 'Iraq', 'NOR': 'Norway' } },
-    'J': { name: 'GROUP J', teams: { 'ARG': 'Argentina', 'ALG': 'Algeria', 'AUT': 'Austria', 'JOR': 'Jordan' } },
-    'K': { name: 'GROUP K', teams: { 'POR': 'Portugal', 'COD': 'DR Congo', 'UZB': 'Uzbekistan', 'COL': 'Colombia' } },
-    'L': { name: 'GROUP L', teams: { 'ENG': 'England', 'CRO': 'Croatia', 'GHA': 'Ghana', 'PAN': 'Panama' } },
-};
+    const GROUPS = {
+        'FWC': { name: '⚽ World Cup History', teams: {} },
+        'A': { name: 'GROUP A', teams: { 'MEX': 'Mexico', 'RSA': 'South Africa', 'KOR': 'South Korea', 'CZE': 'Czechia' } },
+        'B': { name: 'GROUP B', teams: { 'CAN': 'Canada', 'BIH': 'Bosnia and Herzegovina', 'QAT': 'Qatar', 'SUI': 'Switzerland' } },
+        'C': { name: 'GROUP C', teams: { 'BRA': 'Brazil', 'MAR': 'Morocco', 'HAI': 'Haiti', 'SCO': 'Scotland' } },
+        'D': { name: 'GROUP D', teams: { 'USA': 'United States', 'PAR': 'Paraguay', 'AUS': 'Australia', 'TUR': 'Turkey' } },
+        'E': { name: 'GROUP E', teams: { 'GER': 'Germany', 'CUW': 'Curaçao', 'CIV': 'Ivory Coast', 'ECU': 'Ecuador' } },
+        'F': { name: 'GROUP F', teams: { 'NED': 'Netherlands', 'JPN': 'Japan', 'SWE': 'Sweden', 'TUN': 'Tunisia' } },
+        'G': { name: 'GROUP G', teams: { 'BEL': 'Belgium', 'EGY': 'Egypt', 'IRN': 'Iran', 'NZL': 'New Zealand' } },
+        'H': { name: 'GROUP H', teams: { 'ESP': 'Spain', 'CPV': 'Cape Verde', 'KSA': 'Saudi Arabia', 'URU': 'Uruguay' } },
+        'I': { name: 'GROUP I', teams: { 'FRA': 'France', 'SEN': 'Senegal', 'IRQ': 'Iraq', 'NOR': 'Norway' } },
+        'J': { name: 'GROUP J', teams: { 'ARG': 'Argentina', 'ALG': 'Algeria', 'AUT': 'Austria', 'JOR': 'Jordan' } },
+        'K': { name: 'GROUP K', teams: { 'POR': 'Portugal', 'COD': 'DR Congo', 'UZB': 'Uzbekistan', 'COL': 'Colombia' } },
+        'L': { name: 'GROUP L', teams: { 'ENG': 'England', 'CRO': 'Croatia', 'GHA': 'Ghana', 'PAN': 'Panama' } },
+    };
 
-        const FLAGS = {
-    'FWC': '⚽', 'MEX': '🇲🇽', 'RSA': '🇿🇦', 'KOR': '🇰🇷', 'CZE': '🇨🇿',
-    'CAN': '🇨🇦', 'BIH': '🇧🇦', 'QAT': '🇶🇦', 'SUI': '🇨🇭',
-    'BRA': '🇧🇷', 'MAR': '🇲🇦', 'HAI': '🇭🇹', 'SCO': '🏴',
-    'USA': '🇺🇸', 'PAR': '🇵🇾', 'AUS': '🇦🇺', 'TUR': '🇹🇷',
-    'GER': '🇩🇪', 'CUW': '🇨🇼', 'CIV': '🇨🇮', 'ECU': '🇪🇨',
-    'NED': '🇳🇱', 'JPN': '🇯🇵', 'SWE': '🇸🇪', 'TUN': '🇹🇳',
-    'BEL': '🇧🇪', 'EGY': '🇪🇬', 'IRN': '🇮🇷', 'NZL': '🇳🇿',
-    'ESP': '🇪🇸', 'CPV': '🇨🇻', 'KSA': '🇸🇦', 'URU': '🇺🇾',
-    'FRA': '🇫🇷', 'SEN': '🇸🇳', 'IRQ': '🇮🇶', 'NOR': '🇳🇴',
-    'ARG': '🇦🇷', 'ALG': '🇩🇿', 'AUT': '🇦🇹', 'JOR': '🇯🇴',
-    'POR': '🇵🇹', 'COD': '🇨🇩', 'UZB': '🇺🇿', 'COL': '🇨🇴',
-    'ENG': '🏴', 'CRO': '🇭🇷', 'GHA': '🇬🇭', 'PAN': '🇵🇦',
-};
-        function PaniniTracker() {
-            const [stickers, setStickers] = useState({});
-            const [searchTerm, setSearchTerm] = useState('');
-            const [filterType, setFilterType] = useState('all');
-            const [loading, setLoading] = useState(true);
-            const [tradeMode, setTradeMode] = useState(false);
-            const [tradeSearch, setTradeSearch] = useState('');
-            const [syncing, setSyncing] = useState(false);
-            const [lastSynced, setLastSynced] = useState(null);
-            const [syncMessage, setSyncMessage] = useState('');
-            const isInitializing = useRef(false);
-            const [lastBackup, setLastBackup] = useState(null);
+    const FLAGS = {
+        'FWC': '⚽', 'MEX': '🇲🇽', 'RSA': '🇿🇦', 'KOR': '🇰🇷', 'CZE': '🇨🇿',
+        'CAN': '🇨🇦', 'BIH': '🇧🇦', 'QAT': '🇶🇦', 'SUI': '🇨🇭',
+        'BRA': '🇧🇷', 'MAR': '🇲🇦', 'HAI': '🇭🇹', 'SCO': '🏴',
+        'USA': '🇺🇸', 'PAR': '🇵🇾', 'AUS': '🇦🇺', 'TUR': '🇹🇷',
+        'GER': '🇩🇪', 'CUW': '🇨🇼', 'CIV': '🇨🇮', 'ECU': '🇪🇨',
+        'NED': '🇳🇱', 'JPN': '🇯🇵', 'SWE': '🇸🇪', 'TUN': '🇹🇳',
+        'BEL': '🇧🇪', 'EGY': '🇪🇬', 'IRN': '🇮🇷', 'NZL': '🇳🇿',
+        'ESP': '🇪🇸', 'CPV': '🇨🇻', 'KSA': '🇸🇦', 'URU': '🇺🇾',
+        'FRA': '🇫🇷', 'SEN': '🇸🇳', 'IRQ': '🇮🇶', 'NOR': '🇳🇴',
+        'ARG': '🇦🇷', 'ALG': '🇩🇿', 'AUT': '🇦🇹', 'JOR': '🇯🇴',
+        'POR': '🇵🇹', 'COD': '🇨🇩', 'UZB': '🇺🇿', 'COL': '🇨🇴',
+        'ENG': '🏴', 'CRO': '🇭🇷', 'GHA': '🇬🇭', 'PAN': '🇵🇦',
+    };
 
-            // Firebase REST API - PUSH to cloud
-            const syncToCloud = async () => {
-    setSyncing(true);
-    setSyncMessage('');
-    try {
-        // First pull current cloud data as backup
-        const backupResponse = await fetch(
-            `${FIREBASE_DB_URL}/album/stickers.json?auth=${FIREBASE_API_KEY}`
+    // ── PIN MODAL ──────────────────────────────────────────────────
+    function PinModal({ accountName, onConfirm, onCancel }) {
+        const [pin, setPin] = useState('');
+        const [error, setError] = useState('');
+        return (
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4">
+                <div className="bg-white rounded-2xl p-6 max-w-xs w-full text-center shadow-2xl">
+                    <div className="text-4xl mb-2">🔒</div>
+                    <h2 className="text-lg font-black mb-1">Sync to Cloud</h2>
+                    <p className="text-sm text-slate-500 mb-4">Enter your 2-character PIN for <strong>{accountName}</strong></p>
+                    <input
+                        type="password"
+                        maxLength={2}
+                        value={pin}
+                        onChange={e => { setPin(e.target.value); setError(''); }}
+                        className="w-full border-2 border-slate-300 rounded-xl px-3 py-3 text-center text-3xl font-black tracking-widest focus:outline-none focus:border-purple-400 mb-2"
+                        placeholder="••"
+                        autoFocus
+                    />
+                    {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+                    <div className="flex gap-2 mt-2">
+                        <button onClick={onCancel} className="flex-1 bg-slate-100 text-slate-700 font-bold py-2 rounded-xl active:scale-95 transition-all">Cancel</button>
+                        <button onClick={() => onConfirm(pin, setError)} className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold py-2 rounded-xl active:scale-95 transition-all">Confirm</button>
+                    </div>
+                </div>
+            </div>
         );
-        if (backupResponse.ok) {
-            const backupData = await backupResponse.json();
-            if (backupData) setLastBackup(backupData);
-        }
-        // Then push new data
-        const response = await fetch(
-            `${FIREBASE_DB_URL}/album/stickers.json?auth=${FIREBASE_API_KEY}`,
-            {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(stickers)
-            }
-        );
-        if (response.ok) {
-            setLastSynced(new Date());
-            setSyncMessage('✅ Synced to Cloud!');
-            setTimeout(() => setSyncMessage(''), 3000);
-        } else {
-            setSyncMessage('❌ Sync failed');
-        }
-    } catch (error) {
-        setSyncMessage('❌ Error: ' + error.message);
     }
-    setSyncing(false);
-};
-            const undoSync = async () => {
-    if (!lastBackup) {
-        setSyncMessage('❌ No backup available');
-        return;
-    }
-    const confirmed = window.confirm('⏪ Restore previous cloud version?\n\nThis will overwrite the current cloud data with the last backup.');
-    if (!confirmed) return;
-    setSyncing(true);
-    try {
-        const response = await fetch(
-            `${FIREBASE_DB_URL}/album/stickers.json?auth=${FIREBASE_API_KEY}`,
-            {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(lastBackup)
-            }
-        );
-        if (response.ok) {
-            setStickers(lastBackup);
-            localStorage.setItem('montefar_zug_album', JSON.stringify(lastBackup));
-            setLastBackup(null);
-            setSyncMessage('⏪ Restored previous version!');
-            setTimeout(() => setSyncMessage(''), 3000);
-        } else {
-            setSyncMessage('❌ Restore failed');
-        }
-    } catch (error) {
-        setSyncMessage('❌ Error: ' + error.message);
-    }
-    setSyncing(false);
-};
 
-            // Firebase REST API - PULL from cloud
-            const loadFromCloud = async () => {
-                setSyncing(true);
-                setSyncMessage('');
-                try {
-                    const response = await fetch(
-                        `${FIREBASE_DB_URL}/album/stickers.json?auth=${FIREBASE_API_KEY}`
-                    );
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data) {
-                            setStickers(data);
-                            localStorage.setItem('montefar_zug_album', JSON.stringify(data));
-                            setLastSynced(new Date());
-                            setSyncMessage('✅ Loaded from Cloud!');
-                            setTimeout(() => setSyncMessage(''), 3000);
-                        }
-                    } else {
-                        setSyncMessage('❌ Load failed');
-                    }
-                } catch (error) {
-                    setSyncMessage('❌ Error: ' + error.message);
-                }
-                setSyncing(false);
+    // ── CREATE ACCOUNT MODAL ───────────────────────────────────────
+    function CreateAccountModal({ onClose, onCreate, existingCodes }) {
+        const [name, setName] = useState('');
+        const [code, setCode] = useState('');
+        const [pin, setPin] = useState('');
+        const [photo, setPhoto] = useState(null);
+        const [error, setError] = useState('');
+
+        const handleNameChange = (e) => {
+            const val = e.target.value;
+            setName(val);
+            setCode(val.replace(/\s/g, '').slice(0, 3).toUpperCase());
+        };
+
+        const handlePhotoUpload = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 120; canvas.height = 120;
+                    const ctx = canvas.getContext('2d');
+                    const size = Math.min(img.width, img.height);
+                    const sx = (img.width - size) / 2;
+                    const sy = (img.height - size) / 2;
+                    ctx.drawImage(img, sx, sy, size, size, 0, 0, 120, 120);
+                    setPhoto(canvas.toDataURL('image/jpeg', 0.75));
+                };
+                img.src = ev.target.result;
             };
+            reader.readAsDataURL(file);
+        };
 
-            // Initialize
-            useEffect(() => {
-                if (isInitializing.current) return;
-                isInitializing.current = true;
+        const handleSubmit = () => {
+            if (!name.trim()) { setError('Name is required'); return; }
+            if (code.length !== 3) { setError('Code must be exactly 3 characters'); return; }
+            if (pin.length !== 2) { setError('PIN must be exactly 2 characters'); return; }
+            if (existingCodes.includes(code)) { setError('Code already taken — choose another'); return; }
+            onCreate({ name: name.trim(), code, pin, photo });
+        };
 
-                // Load from localStorage
-                const saved = localStorage.getItem('montefar_zug_album');
-                if (saved) {
-                    try {
-                        setStickers(JSON.parse(saved));
-                    } catch {
-                        initializeStickers();
+        return (
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center">
+                <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl">
+                    <h2 className="text-xl font-black text-center mb-5">✨ Create Account</h2>
+
+                    <div className="flex flex-col items-center mb-5">
+                        <div className="w-24 h-24 rounded-full overflow-hidden bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center mb-2 shadow-lg">
+                            {photo
+                                ? <img src={photo} className="w-full h-full object-cover" />
+                                : <span className="text-white text-2xl font-black">{code || '?'}</span>
+                            }
+                        </div>
+                        <label className="text-sm text-purple-600 font-bold cursor-pointer active:opacity-70">
+                            📷 Add Photo
+                            <input type="file" accept="image/*" capture="user" onChange={handlePhotoUpload} className="hidden" />
+                        </label>
+                    </div>
+
+                    <div className="space-y-3 mb-4">
+                        <div>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wide">Name</label>
+                            <input value={name} onChange={handleNameChange} placeholder="e.g. Montuzug"
+                                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 mt-1 focus:outline-none focus:border-purple-400 font-semibold" />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wide">3-Character Code</label>
+                            <input value={code} onChange={e => setCode(e.target.value.toUpperCase().slice(0, 3))}
+                                placeholder="e.g. MZ1" maxLength={3}
+                                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 mt-1 font-black text-lg tracking-widest focus:outline-none focus:border-purple-400" />
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wide">2-Character PIN (for cloud sync)</label>
+                            <input value={pin} onChange={e => setPin(e.target.value.slice(0, 2))}
+                                placeholder="e.g. A7" maxLength={2}
+                                className="w-full border-2 border-slate-200 rounded-xl px-3 py-2.5 mt-1 font-black text-lg tracking-widest focus:outline-none focus:border-purple-400" />
+                        </div>
+                    </div>
+
+                    {error && <p className="text-red-500 text-sm text-center mb-3">{error}</p>}
+
+                    <div className="flex gap-2">
+                        <button onClick={onClose} className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl active:scale-95 transition-all">Cancel</button>
+                        <button onClick={handleSubmit} className="flex-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-black py-3 rounded-xl active:scale-95 transition-all shadow-md">Create! 🎉</button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // ── HOME SCREEN ────────────────────────────────────────────────
+    function HomeScreen({ accounts, onEnterAccount, onCreateAccount }) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+                <div className="max-w-md mx-auto px-5 py-10">
+                    <div className="text-center mb-8">
+                        <div className="text-6xl mb-3">🌍⚽🌍</div>
+                        <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 leading-tight">
+                            Album del Mundial 2026
+                        </h1>
+                        <p className="text-slate-400 text-sm mt-2 font-semibold">Select your collection</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                        {Object.values(accounts).map(account => (
+                            <button
+                                key={account.code}
+                                onClick={() => onEnterAccount(account)}
+                                className="bg-white rounded-2xl shadow-md p-5 flex flex-col items-center gap-3 active:scale-95 transition-all hover:shadow-xl border-2 border-transparent hover:border-purple-200"
+                            >
+                                <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center shadow-md">
+                                    {account.photo
+                                        ? <img src={account.photo} className="w-full h-full object-cover" alt={account.name} />
+                                        : <span className="text-white text-xl font-black">{account.code}</span>
+                                    }
+                                </div>
+                                <span className="font-black text-slate-700 text-sm text-center leading-tight">{account.name}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={onCreateAccount}
+                        className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-lg"
+                    >
+                        ✨ Create New Account
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // ── PANINI TRACKER ─────────────────────────────────────────────
+    function PaniniTracker({ account, onBack }) {
+        const [stickers, setStickers] = useState({});
+        const [searchTerm, setSearchTerm] = useState('');
+        const [filterType, setFilterType] = useState('all');
+        const [loading, setLoading] = useState(true);
+        const [tradeMode, setTradeMode] = useState(false);
+        const [tradeSearch, setTradeSearch] = useState('');
+        const [syncing, setSyncing] = useState(false);
+        const [lastSynced, setLastSynced] = useState(null);
+        const [syncMessage, setSyncMessage] = useState('');
+        const [lastBackup, setLastBackup] = useState(null);
+        const [showPinModal, setShowPinModal] = useState(false);
+        const isInitializing = useRef(false);
+
+        const STICKERS_URL = `${FIREBASE_DB_URL}/accounts/${account.code}/stickers.json?auth=${FIREBASE_API_KEY}`;
+        const LOCAL_KEY = `montefar_album_${account.code}`;
+
+        const syncToCloud = async () => {
+            setSyncing(true);
+            setSyncMessage('');
+            try {
+                const backupRes = await fetch(STICKERS_URL);
+                if (backupRes.ok) {
+                    const backupData = await backupRes.json();
+                    if (backupData) setLastBackup(backupData);
+                }
+                const response = await fetch(STICKERS_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(stickers)
+                });
+                if (response.ok) {
+                    setLastSynced(new Date());
+                    setSyncMessage('✅ Synced to Cloud!');
+                    setTimeout(() => setSyncMessage(''), 3000);
+                } else {
+                    setSyncMessage('❌ Sync failed');
+                }
+            } catch (error) {
+                setSyncMessage('❌ Error: ' + error.message);
+            }
+            setSyncing(false);
+        };
+
+        const handlePinConfirm = (enteredPin, setError) => {
+            if (enteredPin === account.pin) {
+                setShowPinModal(false);
+                syncToCloud();
+            } else {
+                setError('❌ Wrong PIN — try again');
+            }
+        };
+
+        const loadFromCloud = async () => {
+            setSyncing(true);
+            setSyncMessage('');
+            try {
+                const response = await fetch(STICKERS_URL);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data) {
+                        setStickers(data);
+                        localStorage.setItem(LOCAL_KEY, JSON.stringify(data));
+                        setLastSynced(new Date());
+                        setSyncMessage('✅ Loaded from Cloud!');
+                        setTimeout(() => setSyncMessage(''), 3000);
+                    } else {
+                        setSyncMessage('☁️ No cloud data yet');
+                        setTimeout(() => setSyncMessage(''), 3000);
                     }
                 } else {
-                    initializeStickers();
+                    setSyncMessage('❌ Load failed');
                 }
-                setLoading(false);
-            }, []);
-
-            // Save to localStorage automatically
-            useEffect(() => {
-                if (Object.keys(stickers).length === 0) return;
-                localStorage.setItem('montefar_zug_album', JSON.stringify(stickers));
-            }, [stickers]);
-
-            const initializeStickers = () => {
-                const newStickers = {};
-                for (let i = 1; i <= 19; i++) {
-                    newStickers[`FWC-${i}`] = 0;
-                }
-                Object.keys(GROUPS).forEach(groupKey => {
-                    if (groupKey !== 'FWC') {
-                        Object.keys(GROUPS[groupKey].teams).forEach(countryCode => {
-                            for (let i = 1; i <= 20; i++) {
-                                newStickers[`${countryCode}-${i}`] = 0;
-                            }
-                        });
-                    }
-                });
-                setStickers(newStickers);
-            };
-
-            const incrementCount = (code) => {
-                setStickers(prev => ({ ...prev, [code]: (prev[code] || 0) + 1 }));
-            };
-
-            const decrementCount = (code) => {
-                setStickers(prev => ({ ...prev, [code]: Math.max(0, (prev[code] || 0) - 1) }));
-            };
-
-            const deleteStickerCount = (code) => {
-                setStickers(prev => ({ ...prev, [code]: 0 }));
-            };
-
-            const allStickers = Object.keys(stickers).map(code => ({ code, count: stickers[code] }));
-            
-            const missing = allStickers.filter(s => s.count === 0).length;
-            const have = allStickers.filter(s => s.count === 1).length;
-            const forTrade = allStickers.filter(s => s.count >= 2).length;
-            const total = allStickers.length;
-            const percentage = total > 0 ? Math.round((have / total) * 100) : 0;
-
-            const filtered = allStickers.filter(s => {
-                const matchesSearch = s.code.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesFilter = filterType === 'all' || (filterType === 'have' && s.count === 1) || (filterType === 'trading' && s.count >= 2) || (filterType === 'missing' && s.count === 0);
-                return matchesSearch && matchesFilter;
-            });
-
-            const getCountryName = (code) => {
-                for (const groupKey of ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L']) {
-                    if (GROUPS[groupKey].teams[code]) return GROUPS[groupKey].teams[code];
-                }
-                return 'World Cup';
-            };
-
-            const getStatusDisplay = (count) => {
-                if (count === 0) return { label: 'Missing', icon: '', color: 'bg-slate-100 border-slate-300' };
-                if (count === 1) return { label: 'Have', icon: '✓', color: 'bg-green-100 border-green-400' };
-                return { label: `Have + Trade (${count - 1})`, icon: '✓↔', color: 'bg-purple-100 border-purple-400' };
-            };
-
-            const formatSyncTime = () => {
-                if (!lastSynced) return 'Never';
-                const now = new Date();
-                const diff = Math.floor((now - lastSynced) / 1000);
-                if (diff < 60) return 'Just now';
-                if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-                return Math.floor(diff / 3600) + 'h ago';
-            };
-
-            const getStickerNumber = (code) => {
-                return parseInt(code.split('-')[1]);
-            };
-
-            const copyMissingToClipboard = () => {
-    const missing = allStickers.filter(s => s.count === 0);
-    const grouped = {};
-
-    // Group by country/team
-    missing.forEach(sticker => {
-        const countryCode = sticker.code.split('-')[0];
-        if (!grouped[countryCode]) {
-            grouped[countryCode] = [];
-        }
-        grouped[countryCode].push(getStickerNumber(sticker.code));
-    });
-
-    // Sort numbers within each group
-    Object.keys(grouped).forEach(code => {
-        grouped[code].sort((a, b) => a - b);
-    });
-
-    // Format as text with groups
-    let text = "Missing Monti\n\n";
-    
-    // FWC first if exists
-    if (grouped['FWC']) {
-        text += "⚽ WORLD CUP HISTORY\n";
-        text += "FWC: " + grouped['FWC'].join(", ") + "\n\n";
-    }
-
-    // Then groups A-L with their teams
-    const groupOrder = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
-    groupOrder.forEach(groupKey => {
-        const groupTeams = Object.keys(GROUPS[groupKey].teams).filter(code => grouped[code]);
-        if (groupTeams.length > 0) {
-            text += "GROUP " + groupKey + "\n";
-            groupTeams.forEach(countryCode => {
-                text += countryCode + ": " + grouped[countryCode].join(", ") + "\n";
-            });
-            text += "\n";
-        }
-    });
-
-    // Copy to clipboard
-    navigator.clipboard.writeText(text).then(() => {
-        setSyncMessage('✅ Copied to clipboard!');
-        setTimeout(() => setSyncMessage(''), 3000);
-    }).catch(() => {
-        setSyncMessage('❌ Copy failed');
-    });
-};
-            const syncToCloudWithWarning = async () => {
-                const confirmed = window.confirm('🚨 JUST CHECKING: ARE YOU BEING STUPID? 🚨\n\nThis will ERASE everything on the cloud and replace it with YOUR data.\n\nIf your account is empty, everyone\'s stickers will be GONE!\n\nReally sync?');
-                if (confirmed) {
-                    await syncToCloud();
-                }
-            };
-
-            const StickerCard = ({ sticker }) => {
-    const st = getStatusDisplay(sticker.count);
-    const countryCode = sticker.code.split('-')[0];
-    const flag = FLAGS[countryCode] || '🏳️';
-    return (
-        <div
-            key={sticker.code}
-            className={`aspect-square rounded-lg border-2 cursor-pointer transition-all active:scale-95 font-bold text-center ${st.color} hover:shadow-md relative overflow-hidden`}
-        >
-            <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-85 select-none pointer-events-none">
-                {flag}
-            </div>
-            <div
-                onClick={() => incrementCount(sticker.code)}
-                className="w-full h-full flex flex-col items-center justify-center relative z-10"
-            >
-                <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black text-slate-800 shadow-md z-10">
-    {sticker.code.split('-')[1]}
-</div>
-                {sticker.count > 0 && <>
-                    <div className="text-xs">{st.icon}</div>
-                    {sticker.count > 1 && <div className="text-xs bg-white rounded-full w-4 h-4 flex items-center justify-center">{sticker.count}</div>}
-                </>}
-            </div>
-            {sticker.count > 0 && (
-                <button
-                    onClick={(e) => { e.stopPropagation(); deleteStickerCount(sticker.code); }}
-                    className="absolute top-0 right-0 text-xs bg-red-600 text-white rounded-bl px-1 py-0.5 hover:bg-red-700 z-20"
-                >
-                    ✕
-                </button>
-            )}
-        </div>
-    );
-};
-
-            if (loading) {
-                return <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center"><div className="animate-spin text-purple-600 text-4xl">⏳</div></div>;
+            } catch (error) {
+                setSyncMessage('❌ Error: ' + error.message);
             }
+            setSyncing(false);
+        };
 
+        const undoSync = async () => {
+            if (!lastBackup) { setSyncMessage('❌ No backup available'); return; }
+            const confirmed = window.confirm('⏪ Restore previous cloud version?\n\nThis will overwrite the current cloud data with the last backup.');
+            if (!confirmed) return;
+            setSyncing(true);
+            try {
+                const response = await fetch(STICKERS_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(lastBackup)
+                });
+                if (response.ok) {
+                    setStickers(lastBackup);
+                    localStorage.setItem(LOCAL_KEY, JSON.stringify(lastBackup));
+                    setLastBackup(null);
+                    setSyncMessage('⏪ Restored previous version!');
+                    setTimeout(() => setSyncMessage(''), 3000);
+                } else {
+                    setSyncMessage('❌ Restore failed');
+                }
+            } catch (error) {
+                setSyncMessage('❌ Error: ' + error.message);
+            }
+            setSyncing(false);
+        };
+
+        useEffect(() => {
+            if (isInitializing.current) return;
+            isInitializing.current = true;
+            const saved = localStorage.getItem(LOCAL_KEY);
+            if (saved) {
+                try { setStickers(JSON.parse(saved)); } catch { initializeStickers(); }
+            } else {
+                initializeStickers();
+            }
+            setLoading(false);
+        }, []);
+
+        useEffect(() => {
+            if (Object.keys(stickers).length === 0) return;
+            localStorage.setItem(LOCAL_KEY, JSON.stringify(stickers));
+        }, [stickers]);
+
+        const initializeStickers = () => {
+            const s = {};
+            for (let i = 1; i <= 19; i++) s[`FWC-${i}`] = 0;
+            Object.keys(GROUPS).forEach(gk => {
+                if (gk !== 'FWC') {
+                    Object.keys(GROUPS[gk].teams).forEach(cc => {
+                        for (let i = 1; i <= 20; i++) s[`${cc}-${i}`] = 0;
+                    });
+                }
+            });
+            setStickers(s);
+        };
+
+        const incrementCount = (code) => setStickers(prev => ({ ...prev, [code]: (prev[code] || 0) + 1 }));
+        const decrementCount = (code) => setStickers(prev => ({ ...prev, [code]: Math.max(0, (prev[code] || 0) - 1) }));
+        const deleteStickerCount = (code) => setStickers(prev => ({ ...prev, [code]: 0 }));
+
+        const allStickers = Object.keys(stickers).map(code => ({ code, count: stickers[code] }));
+        const missingCount = allStickers.filter(s => s.count === 0).length;
+        const haveCount = allStickers.filter(s => s.count === 1).length;
+        const tradeCount = allStickers.filter(s => s.count >= 2).length;
+        const total = allStickers.length;
+        const percentage = total > 0 ? Math.round((haveCount / total) * 100) : 0;
+
+        const filtered = allStickers.filter(s => {
+            const matchSearch = s.code.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchFilter = filterType === 'all'
+                || (filterType === 'have' && s.count === 1)
+                || (filterType === 'trading' && s.count >= 2)
+                || (filterType === 'missing' && s.count === 0);
+            return matchSearch && matchFilter;
+        });
+
+        const getCountryName = (code) => {
+            for (const gk of Object.keys(GROUPS)) {
+                if (GROUPS[gk].teams[code]) return GROUPS[gk].teams[code];
+            }
+            return 'World Cup';
+        };
+
+        const getStatusDisplay = (count) => {
+            if (count === 0) return { icon: '', color: 'bg-slate-100 border-slate-300' };
+            if (count === 1) return { icon: '✓', color: 'bg-green-100 border-green-400' };
+            return { icon: '✓↔', color: 'bg-purple-100 border-purple-400' };
+        };
+
+        const formatSyncTime = () => {
+            if (!lastSynced) return 'Never';
+            const diff = Math.floor((new Date() - lastSynced) / 1000);
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+            return Math.floor(diff / 3600) + 'h ago';
+        };
+
+        const getStickerNumber = (code) => parseInt(code.split('-')[1]);
+
+        const copyMissingToClipboard = () => {
+            const missingList = allStickers.filter(s => s.count === 0);
+            const grouped = {};
+            missingList.forEach(sticker => {
+                const cc = sticker.code.split('-')[0];
+                if (!grouped[cc]) grouped[cc] = [];
+                grouped[cc].push(getStickerNumber(sticker.code));
+            });
+            Object.keys(grouped).forEach(cc => grouped[cc].sort((a, b) => a - b));
+            let text = `Missing ${account.name}\n\n`;
+            if (grouped['FWC']) text += '⚽ WORLD CUP HISTORY\nFWC: ' + grouped['FWC'].join(', ') + '\n\n';
+            ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(gk => {
+                const teams = Object.keys(GROUPS[gk].teams).filter(cc => grouped[cc]);
+                if (teams.length > 0) {
+                    text += 'GROUP ' + gk + '\n';
+                    teams.forEach(cc => { text += cc + ': ' + grouped[cc].join(', ') + '\n'; });
+                    text += '\n';
+                }
+            });
+            navigator.clipboard.writeText(text)
+                .then(() => { setSyncMessage('✅ Copied to clipboard!'); setTimeout(() => setSyncMessage(''), 3000); })
+                .catch(() => setSyncMessage('❌ Copy failed'));
+        };
+
+        const StickerCard = ({ sticker }) => {
+            const st = getStatusDisplay(sticker.count);
+            const cc = sticker.code.split('-')[0];
+            const flag = FLAGS[cc] || '🏳️';
             return (
-                <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pb-20">
-                    <div className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b-2 border-purple-200 shadow-sm">
-                        <div className="max-w-3xl mx-auto px-4 py-4">
-                            <h1 className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 mb-3">
-                                🌍 Montúfar Zug Super Secret Album del Mundial
-                            </h1>
-
-                            {/* Sync Message */}
-{syncMessage && (
-    <div className="mb-3 p-2 rounded-lg bg-blue-100 text-blue-800 text-sm font-semibold text-center">
-        {syncMessage}
-    </div>
-)}
-<div className="flex gap-2 mb-3">
-    <button 
-        onClick={syncToCloudWithWarning}
-        disabled={syncing}
-        className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 text-white font-bold py-2 rounded-lg transition-all active:scale-95"
-    >
-        {syncing ? '⏳ Syncing...' : '☁️ Sync to Cloud'}
-    </button>
-    <button 
-        onClick={loadFromCloud}
-        disabled={syncing}
-        className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:opacity-50 text-white font-bold py-2 rounded-lg transition-all active:scale-95"
-    >
-        {syncing ? '⏳ Loading...' : '📥 Load from Cloud'}
-    </button>
-    {lastBackup && (
-        <button
-            onClick={undoSync}
-            disabled={syncing}
-            className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 disabled:opacity-50 text-white font-bold py-2 px-3 rounded-lg transition-all active:scale-95 text-sm"
-        >
-            ⏪ Undo Sync
-        </button>
-    )}
-    <button 
-        onClick={copyMissingToClipboard}
-        className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-2 px-3 rounded-lg transition-all active:scale-95 text-sm"
-    >
-        📋 Copy Missing
-    </button>
-</div>
-
-                            {/* Last Synced */}
-                            <div className="text-xs text-slate-600 text-center mb-3">
-                                Last synced: {formatSyncTime()}
-                            </div>
-
-                            <div className="grid grid-cols-6 gap-2 mb-4">
-                                <div className="bg-gradient-to-br from-green-400 to-green-500 rounded-lg p-2 text-white text-center shadow-md">
-                                    <div className="text-lg font-bold">{have}</div>
-                                    <div className="text-xs font-semibold">Have</div>
-                                </div>
-                                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-2 text-white text-center shadow-md">
-                                    <div className="text-lg font-bold">{forTrade}</div>
-                                    <div className="text-xs font-semibold">Trading</div>
-                                </div>
-                                <div className="bg-gradient-to-br from-slate-400 to-slate-500 rounded-lg p-2 text-white text-center shadow-md">
-                                    <div className="text-lg font-bold">{missing}</div>
-                                    <div className="text-xs font-semibold">Missing</div>
-                                </div>
-                                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-2 text-white text-center shadow-md">
-                                    <div className="text-lg font-bold">{percentage}%</div>
-                                    <div className="text-xs font-semibold">Complete</div>
-                                </div>
-                            </div>
-
-                            <div className="w-full bg-slate-200 rounded-full h-3 overflow-hidden mb-4">
-                                <div className="h-full bg-gradient-to-r from-green-400 via-purple-400 to-orange-400 transition-all" style={{ width: `${percentage}%` }} />
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="relative">
-                                    <input type="text" placeholder="Search sticker..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-3 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
-                                </div>
-
-                                <div className="flex gap-2 flex-wrap">
-                                    {[{ key: 'all', label: 'All' }, { key: 'have', label: 'Have' }, { key: 'trading', label: 'Trading' }, { key: 'missing', label: 'Missing' }].map(btn => (
-                                        <button key={btn.key} onClick={() => setFilterType(btn.key)} className={`px-3 py-1 text-xs font-semibold rounded-full transition-all ${filterType === btn.key ? (btn.key === 'all' ? 'bg-purple-600 text-white' : btn.key === 'have' ? 'bg-green-500 text-white' : btn.key === 'trading' ? 'bg-purple-500 text-white' : 'bg-slate-600 text-white') : 'bg-white border border-slate-300 text-slate-700'}`}>
-                                            {btn.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                <div className={`aspect-square rounded-lg border-2 cursor-pointer transition-all active:scale-95 font-bold text-center ${st.color} hover:shadow-md relative overflow-hidden`}>
+                    <div className="absolute inset-0 flex items-center justify-center text-6xl opacity-100 select-none pointer-events-none">
+                        {flag}
+                    </div>
+                    <div onClick={() => incrementCount(sticker.code)} className="w-full h-full flex flex-col items-center justify-center relative z-10">
+                        <div className="bg-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-black text-slate-800 shadow-md">
+                            {sticker.code.split('-')[1]}
                         </div>
+                        {sticker.count > 0 && <>
+                            <div className="text-xs">{st.icon}</div>
+                            {sticker.count > 1 && <div className="text-xs bg-white rounded-full w-4 h-4 flex items-center justify-center">{sticker.count}</div>}
+                        </>}
                     </div>
-
-                    <div className="max-w-3xl mx-auto px-3 py-4">
-                        {filtered.length === 0 ? (
-                            <div className="text-center py-12 text-slate-500">No stickers match</div>
-                        ) : (
-                            <>
-                                {filtered.some(s => s.code.startsWith('FWC')) && (
-                                    <div className="mb-8">
-                                        <h2 className="text-lg font-bold text-slate-700 uppercase mb-3">⚽ World Cup History</h2>
-                                        <div className="grid grid-cols-6 sm:grid-cols-6 gap-2">
-                                            {filtered.filter(s => s.code.startsWith('FWC')).sort((a, b) => getStickerNumber(a.code) - getStickerNumber(b.code)).map(s => <StickerCard key={s.code} sticker={s} />)}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'].map(groupKey => {
-                                    const groupStickers = filtered.filter(s => GROUPS[groupKey].teams[s.code.split('-')[0]]);
-                                    if (groupStickers.length === 0) return null;
-                                  const countries = Object.keys(GROUPS[groupKey].teams).filter(code =>
-    groupStickers.some(s => s.code.startsWith(code + '-'))
-);
-                                    return (
-                                        <div key={groupKey} className="mb-8">
-                                            <h2 className="text-lg font-bold text-slate-700 uppercase mb-4">{GROUPS[groupKey].name}</h2>
-                                            {countries.map(code => (
-                                                <div key={code} className="mb-5">
-                                                    <h3 className="text-sm font-bold text-slate-600 mb-2">🏴 {GROUPS[groupKey].teams[code]}</h3>
-                                                    <div className="grid grid-cols-6 sm:grid-cols-6 gap-2">
-                                                        {groupStickers.filter(s => s.code.startsWith(code)).sort((a, b) => getStickerNumber(a.code) - getStickerNumber(b.code)).map(s => <StickerCard key={s.code} sticker={s} />)}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    );
-                                })}
-                            </>
-                        )}
-                    </div>
-
-                    <div className="fixed bottom-6 right-6 flex flex-col gap-3">
-                        <button onClick={() => setTradeMode(true)} className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl active:scale-95 font-bold text-2xl transition-all">
-                            ↔️
-                        </button>
-                        <button onClick={() => { if (window.confirm('Reset all stickers?')) initializeStickers(); }} className="bg-white border-2 border-slate-300 rounded-full p-3 shadow-lg hover:shadow-xl active:scale-95 transition-all">
-                            🔄
-                        </button>
-                    </div>
-
-                    {tradeMode && (
-                        <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center sm:justify-center">
-                            <div className="bg-white w-full sm:max-w-2xl sm:rounded-xl rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col">
-                                <div className="sticky top-0 bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 flex items-center justify-between rounded-t-3xl sm:rounded-t-xl">
-                                    <h2 className="text-2xl font-bold">↔️ Complete a Trade</h2>
-                                    <button onClick={() => setTradeMode(false)} className="text-white text-2xl hover:opacity-75">✕</button>
-                                </div>
-
-                                <div className="px-4 py-3 border-b bg-slate-50">
-                                    <input type="text" placeholder="Search stickers..." value={tradeSearch} onChange={(e) => setTradeSearch(e.target.value)} className="w-full pl-3 pr-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto p-4">
-                                    {allStickers.filter(s => s.count >= 2 && s.code.toLowerCase().includes(tradeSearch.toLowerCase())).length === 0 ? (
-                                        <div className="text-center py-12 text-slate-500">No stickers available for trading</div>
-                                    ) : (
-                                        <div className="space-y-3">
-                                            {allStickers.filter(s => s.count >= 2 && s.code.toLowerCase().includes(tradeSearch.toLowerCase())).sort((a, b) => a.code.localeCompare(b.code)).map(s => (
-                                                <div key={s.code} className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-transparent border-2 border-purple-200 rounded-lg p-4">
-                                                    <div className="flex-1">
-                                                        <p className="font-bold text-lg">{s.code}</p>
-                                                        <p className="text-sm text-slate-600">{getCountryName(s.code.split('-')[0])}</p>
-                                                    </div>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="text-center">
-                                                            <p className="text-sm text-slate-600">Available</p>
-                                                            <p className="text-2xl font-bold text-purple-600">{s.count - 1}</p>
-                                                        </div>
-                                                        <button onClick={() => decrementCount(s.code)} className="bg-red-500 hover:bg-red-600 active:scale-95 text-white rounded-lg px-4 py-3 font-bold transition-all">
-                                                            Trade ✓
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="border-t p-4 bg-slate-50">
-                                    <button onClick={() => setTradeMode(false)} className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-all">
-                                        Done
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+                    {sticker.count > 0 && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); deleteStickerCount(sticker.code); }}
+                            className="absolute top-0 right-0 text-xs bg-red-600 text-white rounded-bl px-1 py-0.5 z-20"
+                        >✕</button>
                     )}
                 </div>
             );
-        }
+        };
 
-        ReactDOM.createRoot(document.getElementById('root')).render(<PaniniTracker />);
-    </script>
+        if (loading) return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+                <div className="animate-spin text-4xl">⏳</div>
+            </div>
+        );
+
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 pb-20">
+                {showPinModal && <PinModal accountName={account.name} onConfirm={handlePinConfirm} onCancel={() => setShowPinModal(false)} />}
+
+                {/* Sticky Header */}
+                <div className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b-2 border-purple-200 shadow-sm">
+                    <div className="max-w-3xl mx-auto px-4 py-3">
+
+                        {/* Account row */}
+                        <div className="flex items-center gap-3 mb-3">
+                            <button onClick={onBack} className="text-purple-600 font-black text-xl active:scale-95 transition-all px-1">←</button>
+                            <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center flex-shrink-0 shadow">
+                                {account.photo
+                                    ? <img src={account.photo} className="w-full h-full object-cover" alt={account.name} />
+                                    : <span className="text-white text-xs font-black">{account.code}</span>
+                                }
+                            </div>
+                            <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 flex-1 truncate">
+                                {account.name}
+                            </h1>
+                        </div>
+
+                        {/* Sync message */}
+                        {syncMessage && (
+                            <div className="mb-3 p-2 rounded-lg bg-blue-100 text-blue-800 text-sm font-semibold text-center">
+                                {syncMessage}
+                            </div>
+                        )}
+
+                        {/* Buttons */}
+                        <div className="flex gap-2 mb-3">
+                            <button
+                                onClick={() => setShowPinModal(true)}
+                                disabled={syncing}
+                                className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 disabled:opacity-50 text-white font-bold py-2 rounded-lg transition-all active:scale-95 text-sm"
+                            >{syncing ? '⏳' : '☁️ Sync'}</button>
+                            <button
+                                onClick={loadFromCloud}
+                                disabled={syncing}
+                                className="flex-1 bg-gradient-to-r from-green-500 to-green-600 disabled:opacity-50 text-white font-bold py-2 rounded-lg transition-all active:scale-95 text-sm"
+                            >{syncing ? '⏳' : '📥 Load'}</button>
+                            {lastBackup && (
+                                <button
+                                    onClick={undoSync}
+                                    disabled={syncing}
+                                    className="bg-gradient-to-r from-yellow-500 to-yellow-600 disabled:opacity-50 text-white font-bold py-2 px-3 rounded-lg transition-all active:scale-95 text-sm"
+                                >⏪</button>
+                            )}
+                            <button
+                                onClick={copyMissingToClipboard}
+                                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-2 px-3 rounded-lg transition-all active:scale-95 text-sm"
+                            >📋</button>
+                        </div>
+
+                        <div className="text-xs text-slate-400 text-center mb-3">Last synced: {formatSyncTime()}</div>
+
+                        {/* Stats */}
+                        <div className="grid grid-cols-4 gap-2 mb-3">
+                            <div className="bg-gradient-to-br from-green-400 to-green-500 rounded-lg p-2 text-white text-center shadow">
+                                <div className="text-lg font-black">{haveCount}</div>
+                                <div className="text-xs font-semibold">Have</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-2 text-white text-center shadow">
+                                <div className="text-lg font-black">{tradeCount}</div>
+                                <div className="text-xs font-semibold">Trading</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-slate-400 to-slate-500 rounded-lg p-2 text-white text-center shadow">
+                                <div className="text-lg font-black">{missingCount}</div>
+                                <div className="text-xs font-semibold">Missing</div>
+                            </div>
+                            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg p-2 text-white text-center shadow">
+                                <div className="text-lg font-black">{percentage}%</div>
+                                <div className="text-xs font-semibold">Done</div>
+                            </div>
+                        </div>
+
+                        {/* Progress bar */}
+                        <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden mb-3">
+                            <div className="h-full bg-gradient-to-r from-green-400 via-purple-400 to-orange-400 transition-all" style={{ width: `${percentage}%` }} />
+                        </div>
+
+                        {/* Search + filter */}
+                        <div className="space-y-2">
+                            <input
+                                type="text"
+                                placeholder="Search sticker..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+                            />
+                            <div className="flex gap-2 flex-wrap">
+                                {[{key:'all',label:'All'},{key:'have',label:'Have'},{key:'trading',label:'Trading'},{key:'missing',label:'Missing'}].map(btn => (
+                                    <button key={btn.key} onClick={() => setFilterType(btn.key)}
+                                        className={`px-3 py-1 text-xs font-semibold rounded-full transition-all ${filterType === btn.key
+                                            ? (btn.key==='all' ? 'bg-purple-600 text-white' : btn.key==='have' ? 'bg-green-500 text-white' : btn.key==='trading' ? 'bg-purple-500 text-white' : 'bg-slate-600 text-white')
+                                            : 'bg-white border border-slate-300 text-slate-700'}`}>
+                                        {btn.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Sticker Grid */}
+                <div className="max-w-3xl mx-auto px-3 py-4">
+                    {filtered.length === 0 ? (
+                        <div className="text-center py-12 text-slate-500">No stickers match</div>
+                    ) : (
+                        <>
+                            {filtered.some(s => s.code.startsWith('FWC')) && (
+                                <div className="mb-8">
+                                    <h2 className="text-lg font-bold text-slate-700 uppercase mb-3">⚽ World Cup History</h2>
+                                    <div className="grid grid-cols-6 gap-2">
+                                        {filtered.filter(s => s.code.startsWith('FWC')).sort((a,b) => getStickerNumber(a.code)-getStickerNumber(b.code)).map(s => <StickerCard key={s.code} sticker={s} />)}
+                                    </div>
+                                </div>
+                            )}
+                            {['A','B','C','D','E','F','G','H','I','J','K','L'].map(gk => {
+                                const groupStickers = filtered.filter(s => GROUPS[gk].teams[s.code.split('-')[0]]);
+                                if (groupStickers.length === 0) return null;
+                                const countries = Object.keys(GROUPS[gk].teams).filter(cc => groupStickers.some(s => s.code.startsWith(cc + '-')));
+                                return (
+                                    <div key={gk} className="mb-8">
+                                        <h2 className="text-lg font-bold text-slate-700 uppercase mb-4">{GROUPS[gk].name}</h2>
+                                        {countries.map(cc => (
+                                            <div key={cc} className="mb-5">
+                                                <h3 className="text-sm font-bold text-slate-600 mb-2">{FLAGS[cc]} {GROUPS[gk].teams[cc]}</h3>
+                                                <div className="grid grid-cols-6 gap-2">
+                                                    {groupStickers.filter(s => s.code.startsWith(cc + '-')).sort((a,b) => getStickerNumber(a.code)-getStickerNumber(b.code)).map(s => <StickerCard key={s.code} sticker={s} />)}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                );
+                            })}
+                        </>
+                    )}
+                </div>
+
+                {/* FABs */}
+                <div className="fixed bottom-6 right-6 flex flex-col gap-3">
+                    <button onClick={() => setTradeMode(true)} className="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-full p-4 shadow-lg active:scale-95 font-bold text-2xl transition-all">↔️</button>
+                    <button onClick={() => { if (window.confirm('Reset all stickers for ' + account.name + '?')) initializeStickers(); }} className="bg-white border-2 border-slate-300 rounded-full p-3 shadow-lg active:scale-95 transition-all">🔄</button>
+                </div>
+
+                {/* Trade Mode */}
+                {tradeMode && (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center sm:justify-center">
+                        <div className="bg-white w-full sm:max-w-2xl sm:rounded-xl rounded-t-3xl shadow-2xl max-h-[90vh] flex flex-col">
+                            <div className="sticky top-0 bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 flex items-center justify-between rounded-t-3xl sm:rounded-t-xl">
+                                <h2 className="text-2xl font-bold">↔️ Complete a Trade</h2>
+                                <button onClick={() => setTradeMode(false)} className="text-white text-2xl hover:opacity-75">✕</button>
+                            </div>
+                            <div className="px-4 py-3 border-b bg-slate-50">
+                                <input type="text" placeholder="Search stickers..." value={tradeSearch} onChange={e => setTradeSearch(e.target.value)}
+                                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400" />
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-4">
+                                {allStickers.filter(s => s.count >= 2 && s.code.toLowerCase().includes(tradeSearch.toLowerCase())).length === 0 ? (
+                                    <div className="text-center py-12 text-slate-500">No stickers available for trading</div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {allStickers.filter(s => s.count >= 2 && s.code.toLowerCase().includes(tradeSearch.toLowerCase())).sort((a,b) => a.code.localeCompare(b.code)).map(s => (
+                                            <div key={s.code} className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-transparent border-2 border-purple-200 rounded-lg p-4">
+                                                <div className="flex-1">
+                                                    <p className="font-bold text-lg">{s.code}</p>
+                                                    <p className="text-sm text-slate-600">{getCountryName(s.code.split('-')[0])}</p>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="text-center">
+                                                        <p className="text-sm text-slate-600">Available</p>
+                                                        <p className="text-2xl font-bold text-purple-600">{s.count - 1}</p>
+                                                    </div>
+                                                    <button onClick={() => decrementCount(s.code)} className="bg-red-500 hover:bg-red-600 active:scale-95 text-white rounded-lg px-4 py-3 font-bold transition-all">
+                                                        Trade ✓
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="border-t p-4 bg-slate-50">
+                                <button onClick={() => setTradeMode(false)} className="w-full bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-lg transition-all">Done</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // ── MAIN APP ───────────────────────────────────────────────────
+    function App() {
+        const [accounts, setAccounts] = useState({});
+        const [currentAccount, setCurrentAccount] = useState(null);
+        const [showCreate, setShowCreate] = useState(false);
+        const [loadingAccounts, setLoadingAccounts] = useState(true);
+
+        const ACCOUNTS_URL = `${FIREBASE_DB_URL}/accounts_list.json?auth=${FIREBASE_API_KEY}`;
+
+        useEffect(() => { loadAccounts(); }, []);
+
+        const loadAccounts = async () => {
+            try {
+                const response = await fetch(ACCOUNTS_URL);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data) {
+                        setAccounts(data);
+                    } else {
+                        // First ever run — seed Montuzug account
+                        const initial = { 'MZ1': { code: 'MZ1', name: 'Montuzug', pin: '', photo: null } };
+                        await fetch(ACCOUNTS_URL, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(initial)
+                        });
+                        setAccounts(initial);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load accounts:', error);
+            } finally {
+                setLoadingAccounts(false);
+            }
+        };
+
+        const handleCreateAccount = async ({ name, code, pin, photo }) => {
+            const newAccount = { code, name, pin, photo };
+            const updated = { ...accounts, [code]: newAccount };
+            try {
+                await fetch(ACCOUNTS_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updated)
+                });
+                setAccounts(updated);
+                setShowCreate(false);
+            } catch (error) {
+                alert('Failed to create account. Check your connection.');
+            }
+        };
+
+        if (loadingAccounts) return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-5xl mb-4 animate-bounce">⚽</div>
+                    <div className="text-slate-400 font-semibold">Loading...</div>
+                </div>
+            </div>
+        );
+
+        if (currentAccount) return <PaniniTracker account={currentAccount} onBack={() => setCurrentAccount(null)} />;
+
+        return (
+            <>
+                <HomeScreen accounts={accounts} onEnterAccount={setCurrentAccount} onCreateAccount={() => setShowCreate(true)} />
+                {showCreate && <CreateAccountModal onClose={() => setShowCreate(false)} onCreate={handleCreateAccount} existingCodes={Object.keys(accounts)} />}
+            </>
+        );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>
