@@ -19,20 +19,20 @@
         const FIREBASE_API_KEY = "AIzaSyDsSpB-cb8GfWvEJOmzM8XhBf-lblbu_bU";
 
         const GROUPS = {
-            'FWC': { name: '⚽ World Cup History', teams: {} },
-            'A': { name: 'GROUP A', teams: { 'MEX': 'Mexico', 'KOR': 'South Korea', 'RSA': 'South Africa', 'CZE': 'Czechia' } },
-            'B': { name: 'GROUP B', teams: { 'CAN': 'Canada', 'SUI': 'Switzerland', 'QAT': 'Qatar','BIH': 'Bosnia and Herzegovina' } },
-            'C': { name: 'GROUP C', teams: { 'BRA': 'Brazil', 'MAR': 'Morocco', 'SCO': 'Scotland', 'HAI': 'Haiti' } },
-            'D': { name: 'GROUP D', teams: { 'USA': 'United States', 'AUS': 'Australia', 'PAR': 'Paraguay', 'TUR':'Turkey' } },
-            'E': { name: 'GROUP E', teams: { 'GER': 'Germany', 'ECU': 'Ecuador', 'CIV': 'Ivory Coast', 'CUW': 'Curaçao' } },
-            'F': { name: 'GROUP F', teams: { 'NED': 'Netherlands', 'JPN': 'Japan', 'TUN': 'Tunisia', 'SWE' : 'Sweden' } },
-            'G': { name: 'GROUP G', teams: { 'BEL': 'Belgium', 'EGY': 'Egypt', 'IRN': 'Iran', 'NZL': 'New Zealand' } },
-            'H': { name: 'GROUP H', teams: { 'ESP': 'Spain', 'URU': 'Uruguay', 'KSA': 'Saudi Arabia', 'CPV': 'Cape Verde' } },
-            'I': { name: 'GROUP I', teams: { 'FRA': 'France', 'SEN': 'Senegal', 'NOR': 'Norway', 'IRQ': 'Iraq' } },
-            'J': { name: 'GROUP J', teams: { 'ARG': 'Argentina', 'AUT': 'Austria', 'ALG': 'Algeria', 'JOR': 'Jordan' } },
-            'K': { name: 'GROUP K', teams: { 'POR': 'Portugal', 'COL': 'Colombia', 'UZB': 'Uzbekistan', 'COD' : 'DR Congo' } },
-            'L': { name: 'GROUP L', teams: { 'ENG': 'England', 'CRO': 'Croatia', 'GHA': 'Ghana', 'PAN': 'Panama' } },
-        };
+    'FWC': { name: '⚽ World Cup History', teams: {} },
+    'A': { name: 'GROUP A', teams: { 'MEX': 'Mexico', 'RSA': 'South Africa', 'KOR': 'South Korea', 'CZE': 'Czechia' } },
+    'B': { name: 'GROUP B', teams: { 'CAN': 'Canada', 'BIH': 'Bosnia and Herzegovina', 'QAT': 'Qatar', 'SUI': 'Switzerland' } },
+    'C': { name: 'GROUP C', teams: { 'BRA': 'Brazil', 'MAR': 'Morocco', 'HAI': 'Haiti', 'SCO': 'Scotland' } },
+    'D': { name: 'GROUP D', teams: { 'USA': 'United States', 'PAR': 'Paraguay', 'AUS': 'Australia', 'TUR': 'Turkey' } },
+    'E': { name: 'GROUP E', teams: { 'GER': 'Germany', 'CUW': 'Curaçao', 'CIV': 'Ivory Coast', 'ECU': 'Ecuador' } },
+    'F': { name: 'GROUP F', teams: { 'NED': 'Netherlands', 'JPN': 'Japan', 'SWE': 'Sweden', 'TUN': 'Tunisia' } },
+    'G': { name: 'GROUP G', teams: { 'BEL': 'Belgium', 'EGY': 'Egypt', 'IRN': 'Iran', 'NZL': 'New Zealand' } },
+    'H': { name: 'GROUP H', teams: { 'ESP': 'Spain', 'CPV': 'Cape Verde', 'KSA': 'Saudi Arabia', 'URU': 'Uruguay' } },
+    'I': { name: 'GROUP I', teams: { 'FRA': 'France', 'SEN': 'Senegal', 'IRQ': 'Iraq', 'NOR': 'Norway' } },
+    'J': { name: 'GROUP J', teams: { 'ARG': 'Argentina', 'ALG': 'Algeria', 'AUT': 'Austria', 'JOR': 'Jordan' } },
+    'K': { name: 'GROUP K', teams: { 'POR': 'Portugal', 'COD': 'DR Congo', 'UZB': 'Uzbekistan', 'COL': 'Colombia' } },
+    'L': { name: 'GROUP L', teams: { 'ENG': 'England', 'CRO': 'Croatia', 'GHA': 'Ghana', 'PAN': 'Panama' } },
+};
 
         function PaniniTracker() {
             const [stickers, setStickers] = useState({});
