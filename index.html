@@ -257,7 +257,7 @@
         };
 
         const handlePinConfirm = (enteredPin, setError) => {
-            if (enteredPin === account.pin) {
+            if (enteredPin === String(account.pin)) {
                 setShowPinModal(false);
                 syncToCloud();
             } else {
