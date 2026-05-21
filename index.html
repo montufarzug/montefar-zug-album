@@ -226,7 +226,7 @@
         const [showPinModal, setShowPinModal] = useState(false);
         const isInitializing = useRef(false);
 
-        const STICKERS_URL = `${FIREBASE_DB_URL}/accounts/${account.code}/stickers.json?auth=${FIREBASE_API_KEY}`;
+        const STICKERS_URL = `${FIREBASE_DB_URL}/album/stickers.json?auth=${FIREBASE_API_KEY}`;
         const LOCAL_KEY = `montefar_album_${account.code}`;
 
         const syncToCloud = async () => {
