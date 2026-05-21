@@ -702,7 +702,7 @@
             </div>
         );
 
-        if (currentAccount) return <PaniniTracker account={currentAccount} onBack={() => setCurrentAccount(null)} />;
+        if (currentAccount) return <PaniniTracker key={currentAccount.code} account={currentAccount} onBack={() => setCurrentAccount(null)} />;
 
         return (
             <>
