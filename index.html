@@ -351,17 +351,24 @@
                             </h1>
 
                             {/* Sync Message */}
-                            {syncMessage && (
-                                <div className="mb-3 p-2 rounded-lg bg-blue-100 text-blue-800 text-sm font-semibold text-center">
-                                    {syncMessage}
-                                </div>
-                            )}
-
-                            <div className="flex gap-2 mb-3">
-    <button onClick={syncToCloudWithWarning} ...>
+{syncMessage && (
+    <div className="mb-3 p-2 rounded-lg bg-blue-100 text-blue-800 text-sm font-semibold text-center">
+        {syncMessage}
+    </div>
+)}
+<div className="flex gap-2 mb-3">
+    <button 
+        onClick={syncToCloudWithWarning}
+        disabled={syncing}
+        className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 text-white font-bold py-2 rounded-lg transition-all active:scale-95"
+    >
         {syncing ? '⏳ Syncing...' : '☁️ Sync to Cloud'}
     </button>
-    <button onClick={loadFromCloud} ...>
+    <button 
+        onClick={loadFromCloud}
+        disabled={syncing}
+        className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 disabled:opacity-50 text-white font-bold py-2 rounded-lg transition-all active:scale-95"
+    >
         {syncing ? '⏳ Loading...' : '📥 Load from Cloud'}
     </button>
     {lastBackup && (
@@ -373,7 +380,10 @@
             ⏪ Undo Sync
         </button>
     )}
-    <button onClick={copyMissingToClipboard} ...>
+    <button 
+        onClick={copyMissingToClipboard}
+        className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-2 px-3 rounded-lg transition-all active:scale-95 text-sm"
+    >
         📋 Copy Missing
     </button>
 </div>
